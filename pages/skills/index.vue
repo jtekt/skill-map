@@ -66,7 +66,6 @@
 </template>
 <script lang="ts" setup>
 import { ref } from "vue";
-import useFetchApi from "~/composables/useFetchApi";
 import { useLocale } from "vuetify";
 const { t } = useLocale();
 

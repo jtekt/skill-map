@@ -41,7 +41,7 @@
 <script lang="ts" setup>
 const route = useRoute();
 const router = useRouter();
-const { useAuthUser } = useAuth();
+const { loggedInUser } = useUser();
 const menu = ref(false);
 withDefaults(
   defineProps<{
@@ -82,7 +82,7 @@ const doCompare = () => {
       name: route.name,
     });
   else {
-    const user_id = route.params.user_id ?? useAuthUser().value.username;
+    const user_id = route.params.user_id ?? loggedInUser.value.username;
     router.push({
       path: `/users/${user_id}`,
       query: { compareTo: compareTo.value },

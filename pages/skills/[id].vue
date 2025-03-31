@@ -62,7 +62,7 @@
       </v-col>
       <v-col>
         <v-card max-width="344" class="mx-auto">
-          <v-card-actions v-if="useAuthUser()">
+          <v-card-actions v-if="loggedInUser">
             <v-spacer></v-spacer>
             <v-tooltip
               :text="
@@ -142,7 +142,7 @@
 <script lang="ts" setup>
 import { useLocale } from "vuetify";
 const config = useRuntimeConfig();
-const { useAuthUser } = useAuth();
+const { loggedInUser } = useUser();
 
 const { t } = useLocale();
 
@@ -158,13 +158,12 @@ const snackbar = ref({
 });
 
 onMounted(() => {
-  if (!useAuthUser().value) return;
   getSkill();
 });
 
 const getSkill = async () => {
-  const url = useAuthUser().value
-    ? `/api/users/${useAuthUser().value.username}/skills/${route.params.id}`
+  const url = loggedInUser.value
+    ? `/api/users/${loggedInUser.value.username}/skills/${route.params.id}`
     : `/api/skills/${route.params.id}`;
   loading.value = true;
   await useFetchApi(url)
@@ -253,7 +252,7 @@ const addToUserSkills = async () => {
     method: "POST",
     body: {
       skill_id: skill.value.id,
-      user_id: useAuthUser().value.username,
+      user_id: loggedInUser.value.username,
     },
   };
 
@@ -283,11 +282,4 @@ const addToUserSkills = async () => {
       }, 5000);
     });
 };
-
-watch(
-  () => useAuthUser().value,
-  () => {
-    getSkill();
-  }
-);
 </script>

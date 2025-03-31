@@ -36,7 +36,7 @@
   </div>
 </template>
 <script setup lang="ts">
-const { useAuthUser } = useAuth();
+const { loggedInUser } = useUser();
 const route = useRoute();
 const props = defineProps<{
   user?: any;
@@ -46,7 +46,7 @@ const enableComparison = computed(() => {
 });
 
 const smOwnerLegend = computed(() => {
-  return props.user && props.user.username != useAuthUser().value.username
+  return props.user && props.user.username != loggedInUser.value.username
     ? props.user.display_name
     : undefined;
 });
