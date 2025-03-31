@@ -274,11 +274,11 @@ const getUserData = async () => {
   if (!config.public.userManagerApiUrl) return;
   const { user_id } = route.params;
 
-  await useFetchApi(`${config.public.userManagerApiUrl}/v3/users`, {
-    params: { username: user_id },
-  })
+  await useFetchApi(
+    `${config.public.userManagerApiUrl}/v3/employees/${user_id}`
+  )
     .then((response: any) => {
-      user.value = response.users[0];
+      user.value = response;
     })
     .catch((error) => {
       snackbar.value = { text: error, color: "error", display: true };
