@@ -9,17 +9,14 @@
 </template>
 
 <script setup lang="ts">
-const { useAuthUser } = useAuth();
 const loading = ref(false);
 const route = useRoute();
 const skills = ref<any>();
 const user = ref<any>();
 
 onMounted(() => {
-  if (useAuthUser().value) {
-    getSkills();
-    getUserData();
-  }
+  getSkills();
+  getUserData();
 });
 
 const getSkills = async () => {
@@ -67,13 +64,5 @@ watch(
     getSkills();
   },
   { deep: true } // Enables deep watching for reactive objects like `query`
-);
-
-watch(
-  () => useAuthUser().value,
-  () => {
-    getSkills();
-    getUserData();
-  }
 );
 </script>

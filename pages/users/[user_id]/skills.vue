@@ -136,8 +136,9 @@
 
 <script setup lang="ts">
 import { useLocale } from "vuetify";
+
 const config = useRuntimeConfig();
-const { useAuthUser } = useAuth();
+const { loggedInUser } = useUser();
 
 const { t } = useLocale();
 
@@ -183,7 +184,7 @@ const search = ref("");
 const loading = ref(false);
 const allowChanges = computed(
   () =>
-    useAuthUser().value && useAuthUser().value.username === route.params.user_id
+    loggedInUser.value && loggedInUser.value.username === route.params.user_id
 );
 const path = computed(() => {
   const { user_id } = route.params;
@@ -200,8 +201,7 @@ const snackbar = ref({
   color: "primary",
 });
 onMounted(() => {
-  if (!useAuthUser().value) return;
-  getSkills({ page: 1, itemsPerPage: 10 });
+  getSkills();
   getUserData();
 });
 
@@ -214,7 +214,7 @@ const levelColor = (level: number) => {
 
 const pageTitle = computed(() => {
   if (!user.value) return t("user");
-  else if (user.value.username === useAuthUser().value.username)
+  else if (user.value.username === loggedInUser.value.username)
     return t("my_skills");
   else {
     let name = user.value.display_name;
@@ -222,7 +222,7 @@ const pageTitle = computed(() => {
   }
 });
 
-const getSkills = async (event: any) => {
+const getSkills = async (event: any = { page: 1, itemsPerPage: 10 }) => {
   const { user_id } = route.params;
   loading.value = true;
   await useFetchApi(
@@ -245,7 +245,6 @@ const getSkills = async (event: any) => {
 
 const removeFromSkillList = async (item: any) => {
   if (!confirm(t("confirmation.remove_from_user_skill"))) return;
-  const { user_id } = route.params;
   let url = `/api/userSkills/${item.user_skill[0].id}`;
   let options = { method: "DELETE" };
 
@@ -289,14 +288,6 @@ const getUserData = async () => {
       }, 5000);
     });
 };
-
-watch(
-  () => useAuthUser().value,
-  () => {
-    getSkills({ page: 1, itemsPerPage: 10 });
-    getUserData();
-  }
-);
 
 const updatedProficiency = (index: number, data: any) => {
   if (data) skills.value[index].user_skill[0].proficiency_levels[0] = data;

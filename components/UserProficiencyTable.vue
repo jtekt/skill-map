@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { useLocale } from "vuetify";
 
-const { useAuthUser } = useAuth();
+const { loggedInUser } = useUser();
 const config = useRuntimeConfig();
 const route = useRoute();
 const { t } = useLocale();
@@ -81,11 +81,7 @@ const levelColor = (level: number) => {
 };
 
 const getUserSkills = async ({ page, itemsPerPage }) => {
-  const url = `/api/skills/${
-    route.params.id
-  }/userSkills?page=${page}&take=${itemsPerPage}&notUser=${
-    useAuthUser().value.username
-  }`;
+  const url = `/api/skills/${route.params.id}/userSkills?page=${page}&take=${itemsPerPage}&notUser=${loggedInUser.value.username}`;
   loading.value = true;
   await useFetchApi(url)
     .then((response: any) => {
