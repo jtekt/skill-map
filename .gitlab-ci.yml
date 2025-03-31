@@ -1,0 +1,91 @@
+stages:
+  - build
+  - deploy
+
+# Needed to use Docker command in CICD
+image: moreillon/ci-dind:4bca50d7
+services:
+  - name: docker:24.0.7-dind
+
+variables:
+  APPLICATION_NAME: skill-map
+  CONTAINER_IMAGE_NAME: ${APPLICATION_NAME}
+  CONTAINER_IMAGE: ${AWS_ECR_URL}/${CONTAINER_IMAGE_NAME}
+  CONTAINER_IMAGE_TAGGED: ${CONTAINER_IMAGE}:${CI_COMMIT_SHORT_SHA}
+  K8S_ECR_SECRET_NAME: ecr-credentials
+
+build:
+  stage: build
+  # tags:
+  #   - dind
+  only:
+    - master
+    - main
+    - staging
+  before_script:
+    # Create repository if needed
+    - >
+      aws ecr create-repository --repository-name ${CONTAINER_IMAGE_NAME}
+      || echo "Repository might have already existed"
+    # Log in to the registry (AWS credentials are stored as GitLab env variables)
+    - >
+      aws ecr get-login-password
+      | docker login
+      --username AWS
+      --password-stdin
+      ${AWS_ECR_URL}
+  script:
+    # Build the container image
+    - docker build -t ${CONTAINER_IMAGE_TAGGED} .
+    # Push container images to registry
+    - docker push ${CONTAINER_IMAGE_TAGGED}
+
+deploy:
+  variables:
+    K8S_SERVICE_PORT: 31504
+  stage: deploy
+  tags:
+    - dind
+  only:
+    - master
+    - main
+  before_script:
+    - >
+      kubectl create secret docker-registry ${K8S_ECR_SECRET_NAME}
+      --docker-server=${AWS_ECR_URL}
+      --docker-username=AWS
+      --docker-password $(aws ecr get-login-password)
+      --dry-run=client -o yaml
+      | kubectl apply -f -
+  script:
+    - envsubst < kubernetes_manifest.yml | kubectl apply -f -
+  environment:
+    name: production
+    kubernetes:
+      namespace: ${K8S_NAMESPACE}
+
+deploy-staging:
+  variables:
+    K8S_SERVICE_PORT: 31505
+  stage: deploy
+  tags:
+    - dind
+  only:
+    - staging
+  before_script:
+    # - >
+    #   kubectl create namespace ${K8S_NAMESPACE}-staging --dry-run=client -o yaml | kubectl apply -f -
+    - >
+      kubectl create secret docker-registry ${K8S_ECR_SECRET_NAME}
+      --docker-server=${AWS_ECR_URL}
+      --docker-username=AWS
+      --docker-password $(aws ecr get-login-password)
+      --namespace=${K8S_NAMESPACE}-staging
+      --dry-run=client -o yaml
+      | kubectl apply -f -
+  script:
+    - envsubst < kubernetes_manifest_stg.yml | kubectl apply -f -
+  environment:
+    name: staging
+    kubernetes:
+      namespace: ${K8S_NAMESPACE}-staging

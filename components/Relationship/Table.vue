@@ -1,0 +1,121 @@
+<template>
+  <v-card>
+    <v-toolbar prominent :title="title">
+      <v-spacer></v-spacer>
+      <RelationshipAdd
+        :child-id="childId"
+        :parent-id="parentId"
+        :tooltip="tooltip"
+        @relationship-added="loadNextPage({ page: 1, itemsPerPage: 10 })"
+      />
+    </v-toolbar>
+    <v-card-text>
+      <v-data-table-server
+        :headers="headers"
+        :items="skills"
+        item-key="id"
+        :loading="loading"
+        :style="tableStyle"
+        :items-length="count"
+        @update:page="loadNextPage({ page: $event, itemsPerPage: 10 })"
+        @update:items-per-page="loadNextPage({ page: 1, itemsPerPage: $event })"
+      >
+        <template v-slot:item.name="{ item }">
+          <v-hover>
+            <template v-slot:default="{ isHovering, props }">
+              <span
+                v-bind="props"
+                @click="navigateTo(`/skills/${item.id}`)"
+                style="cursor: pointer"
+                :class="isHovering ? 'text-primary' : undefined"
+              >
+                {{ item.name }}
+              </span>
+            </template>
+          </v-hover>
+        </template>
+        <template v-slot:item.image="{ item }">
+          <v-img
+            width="3em"
+            height="3em"
+            :src="item.image || '/icons/school.png'"
+            @click="navigateTo(`/skills/${item.id}`)"
+            style="cursor: pointer"
+          />
+        </template>
+        <template v-slot:item.remove="{ item }">
+          <v-btn
+            icon="mdi-close"
+            @click="deleteRelationship(item)"
+            variant="flat"
+          />
+        </template>
+      </v-data-table-server>
+    </v-card-text>
+  </v-card>
+</template>
+
+<script setup lang="ts">
+import { useLocale } from "vuetify";
+const props = defineProps<{
+  childId?: Number;
+  parentId?: Number;
+  items: any[];
+  totalItemCount: number;
+  title: string;
+  tooltip: string;
+  tableStyle?: any;
+}>();
+const { t } = useLocale();
+const skills = ref<any[]>([...props.items]);
+const count = ref(props.totalItemCount);
+const loading = ref(false);
+
+const headers = computed(() => {
+  let defaultList = [
+    { title: "", value: "see" },
+    { title: t("skill_table.logo"), value: "image" },
+    { title: t("skill_table.name"), value: "name" },
+    { title: t("skill_table.remove"), value: "remove" },
+  ];
+  return defaultList;
+});
+
+const loadNextPage = async ({ page, itemsPerPage }) => {
+  let url = `/api/skills/relationship?page=${page}&take=${itemsPerPage}`;
+  if (props.childId) url = url + `&source_skill_id=${props.childId}`;
+  else if (props.parentId) url = url + `&target_skill_id=${props.parentId}`;
+  loading.value = true;
+  await useFetchApi(url)
+    .then((response: any) => {
+      count.value = response.count;
+      skills.value = response.items.map((obj) => {
+        if (obj.source_skill)
+          return { ...obj.source_skill, relationId: obj.id };
+        else return { ...obj.target_skill, relationId: obj.id };
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    })
+    .finally(() => (loading.value = false));
+};
+
+const deleteRelationship = async (item: any) => {
+  if (!confirm("Are you sure you want to remove this item?")) return;
+  if (!item.relationId) return console.error("Missing relationship ID");
+  loading.value = true;
+  await useFetchApi(`/api/relationships/${item.relationId}`, {
+    method: "DELETE",
+  })
+    .then((_) => {
+      loadNextPage({ page: 1, itemsPerPage: 10 });
+    })
+    .catch((error) => {
+      alert(error);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+</script>
