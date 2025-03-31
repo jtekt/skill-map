@@ -16,18 +16,26 @@
           <v-skeleton-loader type="table-tbody"></v-skeleton-loader>
         </template>
         <template v-slot:item.display_name="{ item }">
-          <v-hover>
-            <template v-slot:default="{ isHovering, props }">
-              <span
-                v-bind="props"
-                @click="navigateTo(`/users/${item.user_id}/skills`)"
-                style="cursor: pointer"
-                :class="isHovering ? 'text-primary' : undefined"
-              >
+          <v-menu transition="scale-transition">
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" variant="text">
                 {{ item.display_name ?? "..." }}
-              </span>
+              </v-btn>
             </template>
-          </v-hover>
+
+            <v-list>
+              <v-list-item
+                :to="`/users/${item.user_id}/skills`"
+                prepend-icon="mdi-table"
+                title="View Skill List"
+              />
+              <v-list-item
+                :to="`/users/${item.user_id}`"
+                prepend-icon="mdi-graph"
+                title="View Skill Graph"
+              />
+            </v-list>
+          </v-menu>
         </template>
         <template v-slot:item.proficiency_level="{ item }">
           <div v-if="item.proficiency_levels.length === 0">
