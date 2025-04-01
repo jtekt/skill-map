@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
-    "@moreillon/nuxt-oidc": "^0.1.21",
+    "@moreillon/nuxt-oidc": "^0.1.22",
     "@moreillon/vuetify3-application-template": "^3.2.1",
     "@prisma/client": "^5.22.0",
     "chart.js": "^4.4.6",

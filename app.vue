@@ -11,6 +11,7 @@
           <!-- <v-btn prepend-icon="mdi-translate" @click="changeLocale">
         {{ current === "en" ? "EN" : "JA" }}
       </v-btn> -->
+          <v-btn icon="mdi-logout" @click="logout()" v-if="loggedInUser" />
         </template>
         <NuxtPage />
       </AppTemplate>
@@ -26,7 +27,7 @@ import { useLocale } from "vuetify";
 const { current } = useLocale();
 
 const config = useRuntimeConfig();
-const { tokenSet } = useAuth();
+const { tokenSet, logout } = useAuth();
 const { setUser, loggedInUser } = useUser();
 
 const title = computed(() => {
@@ -60,8 +61,9 @@ const getUser = async () => {
 };
 
 watch(
-  () => tokenSet.value,
+  () => tokenSet.value.access_token,
   () => {
+    console.log("tokenSet", tokenSet.value);
     if (!tokenSet.value) return;
     getUser();
   },
