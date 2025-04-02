@@ -1,4 +1,4 @@
-import { updateSkill } from "~/db/skills";
+import { updateSkill } from "~/server/db/skills";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);

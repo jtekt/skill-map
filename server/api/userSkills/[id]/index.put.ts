@@ -1,4 +1,4 @@
-import { updateUserSkill } from "~/db/userSkills";
+import { updateUserSkill } from "~/server/db/userSkills";
 export default defineEventHandler(async (event) => {
   const params = getRouterParams(event);
   const body = await readBody(event);

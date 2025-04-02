@@ -1,4 +1,4 @@
-import { getUserSkills } from "~/db/userSkills";
+import { getUserSkills } from "~/server/db/userSkills";
 
 export default defineEventHandler(async (event) => {
   const params = getRouterParams(event);

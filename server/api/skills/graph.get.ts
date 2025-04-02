@@ -1,4 +1,4 @@
-import { readSkillsForGraph } from "~/db/skills";
+import { readSkillsForGraph } from "~/server/db/skills";
 
 export default defineEventHandler(async (event) => {
   const params = getRouterParams(event);

@@ -276,14 +276,26 @@ export const deleteSkill = async (params: any) => {
 
 export const compareSkillsForGraph = async (params: any, query: any) => {
   const { user_id } = params;
-  const { compareTo } = query;
+  const { compareTo, filter, recommended } = query;
 
   if (!user_id) {
     throw new Error("User ID is required for comparison");
   }
 
-  // Base include clause
   let include: any = {};
+  let where: any = {};
+  if (filter !== undefined && filter !== "-1") {
+    const relatedSkillIds = await getAllRelatedSkills(Number(filter));
+    where = {
+      id: {
+        in: [...relatedSkillIds.values()],
+      },
+    };
+  }
+
+  if (recommended !== undefined && recommended === "true") {
+    where = { ...where, recommended: JSON.parse(recommended) };
+  }
 
   // Base include object
   include = {
@@ -305,6 +317,7 @@ export const compareSkillsForGraph = async (params: any, query: any) => {
     };
 
     const skills = await prisma.skill.findMany({
+      where,
       include,
     });
 
@@ -335,6 +348,7 @@ export const compareSkillsForGraph = async (params: any, query: any) => {
     };
 
     const skills = await prisma.skill.findMany({
+      where,
       include,
     });
 

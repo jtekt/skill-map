@@ -1,4 +1,4 @@
-import { deleteRelationship } from "~/db/relationships";
+import { deleteRelationship } from "~/server/db/relationships";
 
 export default defineEventHandler(async (event) => {
   const params = getRouterParams(event);
