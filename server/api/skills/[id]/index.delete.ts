@@ -1,4 +1,4 @@
-import { deleteSkill } from "~/db/skills";
+import { deleteSkill } from "~/server/db/skills";
 
 export default defineEventHandler(async (event) => {
   const params = getRouterParams(event);

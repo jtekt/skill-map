@@ -1,4 +1,4 @@
-import { addNewLevel } from "~/db/proficiency_level";
+import { addNewLevel } from "~/server/db/proficiency_level";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);

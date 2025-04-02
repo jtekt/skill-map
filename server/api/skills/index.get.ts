@@ -1,4 +1,4 @@
-import { readSkills } from "~/db/skills";
+import { readSkills } from "~/server/db/skills";
 
 export default defineEventHandler(async (event) => {
   const params = getRouterParams(event);

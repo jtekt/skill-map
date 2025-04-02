@@ -61,7 +61,7 @@ const items = ref([
     id: "all",
   },
 ]);
-const compareTo = ref("");
+const compareTo = ref("all");
 
 const resetDisable = computed(() => compareTo.value !== "all");
 
@@ -74,6 +74,8 @@ onMounted(() => {
   //     id: user_id as string,
   //   });
   // }
+  const { compareTo: ct } = route.query;
+  if (ct) compareTo.value = ct as any;
 });
 
 const doCompare = () => {
