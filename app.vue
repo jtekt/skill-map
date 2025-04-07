@@ -63,7 +63,6 @@ const getUser = async () => {
 watch(
   () => tokenSet.value.access_token,
   () => {
-    console.log("tokenSet", tokenSet.value);
     if (!tokenSet.value) return;
     getUser();
   },
