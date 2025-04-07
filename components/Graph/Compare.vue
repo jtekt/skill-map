@@ -66,14 +66,13 @@ const compareTo = ref("all");
 const resetDisable = computed(() => compareTo.value !== "all");
 
 onMounted(() => {
-  // TODO: Add compare to other user
-  // const { user_id } = route.params;
-  // if (user_id && useAuthUser().value.username !== user_id) {
-  //   items.value.push({
-  //     name: "Your skills",
-  //     id: user_id as string,
-  //   });
-  // }
+  const { user_id } = route.params;
+  if (user_id && loggedInUser.value.username !== user_id) {
+    items.value.push({
+      name: "Your skills",
+      id: loggedInUser.value.username,
+    });
+  }
   const { compareTo: ct } = route.query;
   if (ct) compareTo.value = ct as any;
 });

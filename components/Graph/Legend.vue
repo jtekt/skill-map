@@ -18,7 +18,7 @@
       </div>
       <div class="legend-item">
         <div class="color-box only-comparison-user-has-skill"></div>
-        <span>Only they have this skill</span>
+        <span>Only {{ comparetOUser }} have this skill</span>
       </div>
       <div class="legend-item">
         <div class="color-box both-have-skill"></div>
@@ -39,15 +39,24 @@
 const { loggedInUser } = useUser();
 const route = useRoute();
 const props = defineProps<{
-  user?: any;
+  users?: any;
 }>();
+
 const enableComparison = computed(() => {
-  return route.query.compareTo ?? false;
+  return props.users && props.users[1]
+    ? props.users[1].display_name
+    : undefined;
+});
+
+const comparetOUser = computed(() => {
+  return props.users && props.users[1]
+    ? props.users[1].display_name
+    : undefined;
 });
 
 const smOwnerLegend = computed(() => {
-  return props.user && props.user.username != loggedInUser.value.username
-    ? props.user.display_name
+  return props.users && props.users[0].username != loggedInUser.value.username
+    ? props.users[0].display_name
     : undefined;
 });
 </script>
