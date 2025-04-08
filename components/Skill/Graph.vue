@@ -384,6 +384,14 @@ watch(
   },
   { deep: true } // Enables deep watching for reactive objects like `query`
 );
+
+onMounted(() => {
+  window.addEventListener("resize", reload);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", reload);
+});
 </script>
 
 <style>
