@@ -27,7 +27,7 @@ import { useLocale } from "vuetify";
 const { current } = useLocale();
 
 const config = useRuntimeConfig();
-const { tokenSet, logout } = useAuth();
+const { tokenSet, logout, user } = useAuth();
 const { setUser, loggedInUser } = useUser();
 
 const title = computed(() => {
@@ -47,7 +47,6 @@ onMounted(() => {
   if (!savedLocale) return;
   current.value = "en";
   // current.value = savedLocale;
-  getUser();
 });
 
 const getUser = async () => {
@@ -64,7 +63,8 @@ const getUser = async () => {
 watch(
   () => tokenSet.value,
   (newValue, oldValue) => {
-    if (newValue !== oldValue) return;
+    if (newValue === oldValue) return;
+    console.log("here");
     getUser();
   },
   { deep: true, immediate: true }
