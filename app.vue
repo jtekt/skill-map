@@ -47,6 +47,7 @@ onMounted(() => {
   if (!savedLocale) return;
   current.value = "en";
   // current.value = savedLocale;
+  getUser();
 });
 
 const getUser = async () => {
@@ -61,9 +62,9 @@ const getUser = async () => {
 };
 
 watch(
-  () => tokenSet.value.access_token,
-  () => {
-    if (!tokenSet.value) return;
+  () => tokenSet.value,
+  (newValue, oldValue) => {
+    if (newValue !== oldValue) return;
     getUser();
   },
   { deep: true, immediate: true }
