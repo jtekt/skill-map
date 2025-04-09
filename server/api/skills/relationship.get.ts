@@ -1,4 +1,4 @@
-import { readSkillRelationShip } from "~/db/relationships";
+import { readSkillRelationShip } from "~/server/db/relationships";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);

@@ -1,10 +1,10 @@
 export default (url: string, options: any = {}) => {
-  const { useAccessToken } = useAuth();
+  const { tokenSet } = useAuth();
   return $fetch(url, {
     ...options,
     headers: {
       ...options.headers,
-      Authorization: `Bearer ${useAccessToken().value}`,
+      Authorization: `Bearer ${tokenSet.value.access_token}`,
     },
   });
 };

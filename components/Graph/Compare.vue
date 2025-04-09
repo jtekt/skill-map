@@ -41,7 +41,7 @@
 <script lang="ts" setup>
 const route = useRoute();
 const router = useRouter();
-const { useAuthUser } = useAuth();
+const { loggedInUser } = useUser();
 const menu = ref(false);
 withDefaults(
   defineProps<{
@@ -61,19 +61,20 @@ const items = ref([
     id: "all",
   },
 ]);
-const compareTo = ref("");
+const compareTo = ref("all");
 
 const resetDisable = computed(() => compareTo.value !== "all");
 
 onMounted(() => {
-  // TODO: Add compare to other user
-  // const { user_id } = route.params;
-  // if (user_id && useAuthUser().value.username !== user_id) {
-  //   items.value.push({
-  //     name: "Your skills",
-  //     id: user_id as string,
-  //   });
-  // }
+  const { user_id } = route.params;
+  if (user_id && loggedInUser.value.username !== user_id) {
+    items.value.push({
+      name: "Your skills",
+      id: loggedInUser.value.username,
+    });
+  }
+  const { compareTo: ct } = route.query;
+  if (ct) compareTo.value = ct as any;
 });
 
 const doCompare = () => {
@@ -82,7 +83,7 @@ const doCompare = () => {
       name: route.name,
     });
   else {
-    const user_id = route.params.user_id ?? useAuthUser().value.username;
+    const user_id = route.params.user_id ?? loggedInUser.value.username;
     router.push({
       path: `/users/${user_id}`,
       query: { compareTo: compareTo.value },

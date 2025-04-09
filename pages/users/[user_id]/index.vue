@@ -4,22 +4,20 @@
     :nodes="skills"
     @skill-added="getSkills"
     :loading="loading"
-    :user="user"
+    :users="users"
   />
 </template>
 
 <script setup lang="ts">
-const { useAuthUser } = useAuth();
 const loading = ref(false);
 const route = useRoute();
 const skills = ref<any>();
-const user = ref<any>();
+const users = ref<any>(undefined);
+const config = useRuntimeConfig();
 
 onMounted(() => {
-  if (useAuthUser().value) {
-    getSkills();
-    getUserData();
-  }
+  getSkills();
+  getUserData();
 });
 
 const getSkills = async () => {
@@ -46,15 +44,19 @@ const getSkills = async () => {
 };
 
 const getUserData = async () => {
-  const config = useRuntimeConfig();
   if (!config.public.userManagerApiUrl) return;
   const { user_id } = route.params;
+  const { compareTo } = route.query;
+  let user_ids = [user_id];
 
-  await useFetchApi(
-    `${config.public.userManagerApiUrl}/v3/employees/${user_id}`
-  )
+  if (compareTo !== undefined && compareTo !== "all") {
+    user_ids.push(compareTo as string);
+  }
+  await useFetchApi(`${config.public.userManagerApiUrl}/v3/users`, {
+    params: { username: user_ids },
+  })
     .then((response: any) => {
-      user.value = response;
+      users.value = response.users;
     })
     .catch((error) => {
       console.log(error);
@@ -65,15 +67,8 @@ watch(
   () => route.query, // Watch only the query part of the route
   () => {
     getSkills();
+    getUserData();
   },
   { deep: true } // Enables deep watching for reactive objects like `query`
-);
-
-watch(
-  () => useAuthUser().value,
-  () => {
-    getSkills();
-    getUserData();
-  }
 );
 </script>

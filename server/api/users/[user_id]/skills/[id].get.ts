@@ -1,5 +1,5 @@
-import { readSkill } from "~/db/skills";
-import { skillAddedFlag } from "~/db/userSkills";
+import { readSkill } from "~/server/db/skills";
+import { skillAddedFlag } from "~/server/db/userSkills";
 
 export default defineEventHandler(async (event) => {
   const params = getRouterParams(event);

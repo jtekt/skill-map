@@ -26,11 +26,13 @@
                 </v-chip>
               </template>
             </v-select>
-            <v-radio-group v-model="recommended" row>
-              <v-radio label="Not Set" :value="-1"></v-radio>
-              <v-radio label="Recommended" :value="true"></v-radio>
-              <v-radio label="Not Recommended" :value="false"></v-radio>
-            </v-radio-group>
+            <v-switch
+              v-model="recommended"
+              label="Show only recommended"
+              hide-details
+              inset
+              color="primary"
+            />
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -54,16 +56,17 @@ const menu = ref(false);
 
 const items = ref();
 const selected = ref(-1);
-const recommended = ref(-1);
+const recommended = ref(false);
 
 const resetDisable = computed(
-  () => selected.value === -1 && recommended.value === -1
+  () => selected.value === -1 && !recommended.value
 );
 
 onMounted(() => {
-  const nuxtApp = useNuxtApp();
-  if (nuxtApp.isHydrating) return;
   getSkillCategories();
+  const { filter, recommended: qRec } = route.query;
+  if (filter) selected.value = filter as any;
+  if (qRec) recommended.value = JSON.parse(qRec as any) ?? false;
 });
 const getSkillCategories = async () => {
   const url = "/api/skills/categories";
@@ -77,15 +80,20 @@ const getSkillCategories = async () => {
 };
 
 const updateFilter = () => {
+  let query = {};
+  const { compareTo } = route.query;
+  if (selected.value !== -1) query = { ...query, filter: selected.value };
+  if (recommended.value) query = { ...query, recommended: recommended.value };
+  if (compareTo) query = { ...query, compareTo };
   router.push({
     name: route.name,
-    query: { filter: selected.value, recommended: recommended.value },
+    query,
   });
   menu.value = false;
 };
 
 const reset = () => {
   selected.value = -1;
-  recommended.value = -1;
+  recommended.value = false;
 };
 </script>

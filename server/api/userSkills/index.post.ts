@@ -1,4 +1,4 @@
-import { addSkillToUser } from "~/db/userSkills";
+import { addSkillToUser } from "~/server/db/userSkills";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);

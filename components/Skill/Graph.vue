@@ -15,7 +15,7 @@
       />
     </div>
 
-    <GraphLegend :user="user" />
+    <GraphLegend :users="users" />
     <div class="speed-dial">
       <v-speed-dial transition="fade-transition" location="top left">
         <template v-slot:activator="{ props: activatorProps }">
@@ -84,7 +84,7 @@ const emit = defineEmits(["skill-added"]);
 const props = defineProps<{
   nodes?: any;
   loading: boolean;
-  user?: any;
+  users?: any;
 }>();
 const route = useRoute();
 const zoomed = ref(false);
@@ -384,6 +384,14 @@ watch(
   },
   { deep: true } // Enables deep watching for reactive objects like `query`
 );
+
+onMounted(() => {
+  window.addEventListener("resize", reload);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", reload);
+});
 </script>
 
 <style>
