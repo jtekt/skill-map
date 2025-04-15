@@ -72,7 +72,7 @@ const getAllRelatedSkills = async (
 
 export const readSkills = async (params: any, query?: any) => {
   const { user_id } = params;
-  const { page, take, search, skills, fields, recommended } = query;
+  const { page, take, skills, fields, recommended, importance } = query;
   let pagination: any = {};
   if (take > -1) {
     let skip = (Number(page) - 1) * Number(take);
@@ -128,6 +128,10 @@ export const readSkills = async (params: any, query?: any) => {
         },
       },
     };
+  }
+
+  if (importance) {
+    where = { ...where, image: { not: null }, importance: { gte: JSON.parse(importance) } };
   }
 
   if (recommended !== undefined && recommended !== "-1") {

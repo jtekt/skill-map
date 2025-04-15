@@ -1,8 +1,11 @@
-export const parseStrToArray = (str: string) => {
-  try {
-    const parsed = JSON.parse(str);
-    return Array.isArray(parsed) ? parsed : [parsed];
-  } catch {
-    return [str];
+export const parseStrToArray = (fields: any) => {
+  if (Array.isArray(fields)) return fields;
+  else {
+    try {
+      const parsed = JSON.parse(fields);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    } catch {
+      return [fields];
+    }
   }
 };
