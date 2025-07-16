@@ -2,7 +2,7 @@
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 export default defineNuxtConfig({
   build: {
-    transpile: ["vuetify"],
+    transpile: ["vuetify", '@prisma/client'],
   },
 
   modules: [
@@ -23,6 +23,12 @@ export default defineNuxtConfig({
   css: ["vuetify/styles"],
 
   vite: {
+    resolve: {
+      alias: {
+        '.prisma/client/index-browser': '@prisma/client',
+        '.prisma/client/default': '@prisma/client',
+      },
+    },
     ssr: {
       noExternal: ["vuetify"],
     },
