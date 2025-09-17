@@ -1,9 +1,9 @@
 <template>
   <div class="graph">
-    <div align="left" justify="center" style="margin-top: 85px !important">
+    <div align="center" justify="center" style="margin-top: 85px !important">
       <svg class="graph_wrapper"></svg>
       <v-fab
-        class="my-4"
+        class="speed-dial"
         location="end"
         color="primary"
         absolute
@@ -163,7 +163,7 @@ const main = async () => {
   const { recommended } = route.query;
   // Specify the dimensions of the chart.
   const width = window.innerWidth;
-  const height = window.innerHeight;
+  const height = window.innerHeight - 110;
 
   // Compute links from nodes and their parents
   const links = props.nodes.reduce(
@@ -213,9 +213,9 @@ const main = async () => {
     .attr("viewBox", [0, 0, width, height])
     .attr(
       "style",
-      `width: ${width - 20}px; height: ${
-        height - 110
-      }px; overflow: hidden !important;`
+      `width: ${
+        width - 20
+      }px; height: ${height}px; overflow: hidden !important;`
     );
 
   // Add a line for each link, and a circle for each node.
@@ -401,8 +401,8 @@ onUnmounted(() => {
   left: 0;
   margin: 0 !important;
   padding: 0 !important;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
 }
 
 .onMouseHover {
@@ -425,8 +425,8 @@ div.tooltip-node {
   font-size: 1rem;
 }
 .speed-dial {
-  position: absolute !important;
-  bottom: 0% !important;
-  left: 0 !important;
+  position: fixed !important;
+  bottom: 100px !important;
+  z-index: 9999;
 }
 </style>

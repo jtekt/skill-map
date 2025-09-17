@@ -64,7 +64,6 @@ watch(
   () => tokenSet.value,
   (newValue, oldValue) => {
     if (newValue === oldValue) return;
-    console.log("here");
     getUser();
   },
   { deep: true, immediate: true }
