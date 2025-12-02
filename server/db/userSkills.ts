@@ -1,119 +1,165 @@
-import prisma from ".";
+import { eq } from "drizzle-orm";
+import { db } from ".";
+import {
+  user_skill,
+  proficiency_level,
+} from "./schema";
 
 export const getUserSkills = async (params: any, query: any) => {
   const { id } = params;
-  const { page, take, notUser } = query;
-  let skip = (Number(page) - 1) * Number(take);
-  let where: any = {};
-  if (notUser) {
-    where = { user_id: { not: notUser } };
-  }
-  const userSkills = await prisma.user_skill.findMany({
-    where: { skill_id: Number(id), ...where },
-    skip: Number(skip),
-    take: Number(take),
-    include: {
+  const { page = 1, take = 10, notUser } = query;
+
+  const limit = Number(take);
+  const offset = (Number(page) - 1) * limit;
+
+  const whereFn = (us: typeof user_skill, { and, eq, not }: any) => {
+    const conds: any[] = [eq(us.skill_id, Number(id))];
+
+    if (notUser) {
+      conds.push(not(eq(us.user_id, notUser)));
+    }
+
+    return and(...conds);
+  };
+
+  const queryOpts: any = {
+    where: whereFn,
+    limit,
+    offset,
+    with: {
       proficiency_levels: {
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 1,
+        orderBy: (pl, { desc }) => [desc(pl.createdAt)],
+        limit: 1,
       },
     },
-  });
-  const count = await prisma.user_skill.count({
-    where: { skill_id: Number(id), ...where },
-  });
+  }
+  const userSkills = await db.query.user_skill.findMany(queryOpts);
+
+  // count (no pagination)
+  const queryCount: any = {
+    where: whereFn,
+  }
+  const allMatching = await db.query.user_skill.findMany(queryCount);
+
+  const count = allMatching.length;
+
   return { items: userSkills, count };
 };
 
 export const skillAddedFlag = async (params: any) => {
   const { user_id, id } = params;
-  const relationshipRecord = await prisma.user_skill.findFirst({
-    where: { user_id, skill_id: Number(id) },
-    include: {
+
+  const row = await db.query.user_skill.findFirst({
+    where: (us, { and, eq }) =>
+      and(eq(us.user_id, user_id), eq(us.skill_id, Number(id))),
+    with: {
       proficiency_levels: {
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-      _count: {
-        select: {
-          proficiency_levels: true,
-        },
+        orderBy: (pl, { desc }) => [desc(pl.createdAt)],
       },
     },
   });
-  return { skill_added: relationshipRecord };
+
+  if (!row) {
+    return { skill_added: null };
+  }
+
+  const skill_added = {
+    ...row,
+    _count: {
+      proficiency_levels: row.proficiency_levels.length,
+    },
+  };
+
+  return { skill_added };
 };
 
 export const updateUserSkill = async (params: any, data: any) => {
   const { id } = params;
-  const relationshipRecord = await prisma.user_skill.update({
-    where: { id: Number(id) },
-    data: data,
-  });
 
-  return { ...relationshipRecord };
+  const [record] = await db
+    .update(user_skill)
+    .set(data)
+    .where(eq(user_skill.id, Number(id)))
+    .returning();
+
+  return { ...record };
 };
 
 export const addSkillToUser = async (data: any) => {
-  const relationshipRecord = await prisma.user_skill.upsert({
-    where: { skill_user: data },
-    update: data,
-    create: data,
-    include: {
+  const { user_id, skill_id } = data;
+
+  await db
+    .insert(user_skill)
+    .values({ user_id, skill_id })
+    .onConflictDoUpdate({
+      target: [user_skill.user_id, user_skill.skill_id],
+      set: data,
+    });
+
+  const relationshipRecord = await db.query.user_skill.findFirst({
+    where: (us, { and, eq }) =>
+      and(eq(us.user_id, user_id), eq(us.skill_id, skill_id)),
+    with: {
       proficiency_levels: {
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-      _count: {
-        select: {
-          proficiency_levels: true,
-        },
+        orderBy: (pl, { desc }) => [desc(pl.createdAt)],
       },
     },
   });
 
-  return { ...relationshipRecord };
+  if (!relationshipRecord) {
+    return null;
+  }
+
+  const result = {
+    ...relationshipRecord,
+    _count: {
+      proficiency_levels: relationshipRecord.proficiency_levels.length,
+    },
+  };
+
+  return { ...result };
 };
 
-/** Bulk proficiency and user_skill insert 
- * 
- * 
- * Sample data:
-  {
-    "user_id": "141554",
-    "skill_id": 1225,
-    "proficiency_levels": {
-      "createMany": {
-        "data": [
-          { "createdAt": "2021-04-12T12:19:57.609Z", "level": 75 },
-          { "createdAt": "2021-04-15T03:31:44.261Z", "level": 55 },
-          { "createdAt": "2021-04-15T03:32:08.354Z", "level": 75 }
-        ],
-        "skipDuplicates": true
-      }
-    }
-  },
-*/
 export const addBulkProficencyToUserSkill = async (data: any) => {
-  const relationshipRecord = await prisma.user_skill.upsert({
-    where: { skill_user: { user_id: data.user_id, skill_id: data.skill_id } },
-    update: data,
-    create: data,
-    include: {
+  const { user_id, skill_id } = data;
+
+  const createManyData =
+    data.proficiency_levels?.createMany?.data ?? [];
+  const [usRow] = await db
+    .insert(user_skill)
+    .values({ user_id, skill_id })
+    .onConflictDoUpdate({
+      target: [user_skill.user_id, user_skill.skill_id],
+      set: { user_id, skill_id },
+    })
+    .returning();
+
+  if (createManyData.length > 0) {
+    const rowsToInsert = createManyData.map((pl: any) => ({
+      user_skill_id: usRow.id,
+      createdAt: pl.createdAt ? new Date(pl.createdAt) : undefined,
+      level: pl.level ?? 0,
+    }));
+
+    await db.insert(proficiency_level).values(rowsToInsert);
+  }
+
+  const relationshipRecord = await db.query.user_skill.findFirst({
+    where: (us, { eq }) => eq(us.id, usRow.id),
+    with: {
       proficiency_levels: true,
     },
   });
 
-  return { ...relationshipRecord };
+  return { ...(relationshipRecord ?? {}) };
 };
 
 export const removeSkillFromUser = async (params: any) => {
   const { id } = params;
 
-  await prisma.user_skill.delete({ where: { id: Number(id) } });
+  await db
+    .delete(user_skill)
+    .where(eq(user_skill.id, Number(id)));
+
   return null;
 };

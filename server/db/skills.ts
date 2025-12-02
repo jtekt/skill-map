@@ -1,41 +1,45 @@
-import prisma from ".";
+import { sql, eq, and, or, gte, inArray, isNotNull, ilike, desc } from "drizzle-orm";
+import { db } from "."; // your drizzle instance
+import {
+  skill,
+  user_skill,
+} from "./schema";
+
 const memoCache = new Map<number, Set<number>>();
 
-const resetSequence = async (tableName: string, idField: string) => {
+/**
+ * Reset sequence for a given table (Postgres)
+ * Same behavior as your Prisma version.
+ */
+export const resetSequence = async (tableName: string, idField: string) => {
   try {
-    await prisma.$queryRawUnsafe(`
-      SELECT setval(
-        pg_get_serial_sequence('${tableName}', '${idField}'),
-        (SELECT MAX(${idField}) FROM ${tableName})
-      );`);
-    console.log(`Sequence for ${tableName} reset successully.`);
+    await db.execute(
+      sql.raw(`
+        SELECT setval(
+          pg_get_serial_sequence('${tableName}', '${idField}'),
+          (SELECT MAX(${idField}) FROM ${tableName})
+        );
+      `)
+    );
+    console.log(`Sequence for ${tableName} reset successfully.`);
   } catch (error) {
     console.log(error);
-  } finally {
-    prisma.$disconnect();
   }
-
-  // NOTE: when need to reset sequence
-  // resetSequence("skill", "id")
-  //   .then(() => process.exit(0))
-  //   .catch((error) => {
-  //     console.log(error);
-  //     process.exit(1);
-  //   });
+  // Drizzle connections are usually pooled; no explicit disconnect.
+  // Usage:
+  // await resetSequence("skill", "id");
 };
 
 export const createSkill = async (data: any) => {
-  const skill = await prisma.skill.create({ data });
-  return skill;
+  const [record] = await db.insert(skill).values(data).returning();
+  return record;
 };
 
 export const readSkillCategories = async () => {
-  const skills = await prisma.skill.findMany({
-    where: {
-      image: null,
-    },
+  const items = await db.query.skill.findMany({
+    where: (s, { isNull }) => isNull(s.image),
   });
-  return { items: skills };
+  return { items };
 };
 
 const getAllRelatedSkills = async (
@@ -43,25 +47,25 @@ const getAllRelatedSkills = async (
   collectedSkills: Set<number> = new Set()
 ): Promise<Set<number>> => {
   if (memoCache.has(skillId)) {
-    const cachedSkills = memoCache.get(skillId) || new Set();
-    cachedSkills.forEach((skill) => collectedSkills.add(skill));
-    return cachedSkills;
+    const cached = memoCache.get(skillId) || new Set();
+    cached.forEach((id) => collectedSkills.add(id));
+    return cached;
   }
-  // Add the current skill to the collected set
+
   collectedSkills.add(skillId);
 
-  // Fetch the immediate children of the current skill
-  const relationships = await prisma.relationship.findMany({
-    where: { target_skill_id: skillId },
-    include: { source_skill: true, target_skill: true },
+  const relations = await db.query.relationship.findMany({
+    where: (r, { eq }) => eq(r.target_skill_id, skillId),
+    with: {
+      source_skill: true,
+      target_skill: true,
+    },
   });
 
-  for (const relation of relationships) {
-    const childSkillId = relation.source_skill_id;
+  for (const rel of relations) {
+    const childSkillId = rel.source_skill_id;
 
-    // Check if the skill is already collected to avoid infinite loops
     if (!collectedSkills.has(childSkillId)) {
-      // Recursively collect skills
       await getAllRelatedSkills(childSkillId, collectedSkills);
     }
   }
@@ -72,317 +76,385 @@ const getAllRelatedSkills = async (
 
 export const readSkills = async (params: any, query?: any) => {
   const { user_id } = params;
-  const { page, take, skills, fields, recommended, importance } = query;
-  let pagination: any = {};
+  const {
+    page = 1,
+    take = -1,
+    skills: skillsStr,
+    fields,
+    recommended,
+    importance,
+  } = query || {};
+
+  let limit: number | undefined;
+  let offset: number | undefined;
   if (take > -1) {
-    let skip = (Number(page) - 1) * Number(take);
-    pagination = { skip, take: Number(take) };
+    limit = Number(take);
+    offset = (Number(page) - 1) * Number(take);
   }
-  let where: any = {};
-  let include: any = {};
-  let select: any;
-  let count = 0;
+
+  let skillIdsForUser: number[] | undefined = undefined;
+  if (user_id) {
+    const rows = await db
+      .select({ skill_id: user_skill.skill_id })
+      .from(user_skill)
+      .where(eq(user_skill.user_id, user_id));
+
+    const set = new Set<number>();
+    for (const row of rows) {
+      if (row.skill_id != null) set.add(row.skill_id);
+    }
+    skillIdsForUser = Array.from(set);
+
+    // If user has no skills at all, Prisma's `some` would return empty set
+    if (skillIdsForUser.length === 0) {
+      return { items: [], count: 0 };
+    }
+  }
+
+  const whereFn = (s: typeof skill, op: any) => {
+    const { and: andOp, or: orOp, ilike: ilikeOp, gte: gteOp, eq: eqOp, isNotNull: isNotNullOp, inArray: inArrayOp } = op;
+    const conds: any[] = [];
+
+    // skills name search
+    if (skillsStr) {
+      const searchTerms = parseStrToArray(skillsStr);
+      if (searchTerms.length > 0) {
+        const ors = searchTerms.map((term: string) =>
+          term.length > 1
+            ? ilikeOp(s.name, `${term}%`) // startsWith (case-insensitive)
+            : ilikeOp(s.name, term)       // equals (case-insensitive-ish)
+        );
+        conds.push(orOp(...ors));
+      }
+    }
+
+    // importance => image NOT NULL AND importance >= value
+    if (importance) {
+      const val = JSON.parse(importance);
+      conds.push(andOp(isNotNullOp(s.image), gteOp(s.importance, val)));
+    }
+
+    // recommended
+    if (recommended !== undefined && recommended !== "-1") {
+      const val = JSON.parse(recommended);
+      conds.push(eqOp(s.recommended, val));
+    }
+
+    // user_id filter (Prisma: user_skill.some.user_id = user_id)
+    if (skillIdsForUser && skillIdsForUser.length > 0) {
+      conds.push(inArrayOp(s.id, skillIdsForUser));
+    }
+
+    return conds.length ? andOp(...conds) : undefined;
+  };
+
+  // ---------- main query ----------
+  let items: any[] = [];
 
   if (fields) {
-    let searchTerms = parseStrToArray(fields);
-    select = searchTerms.reduce((acc, field) => {
-      acc[field] = true;
-      return acc;
-    }, {} as Record<string, boolean>);
-  }
-  if (skills) {
-    const searchTerms = parseStrToArray(skills);
-    where = {
-      OR: searchTerms.map((term) =>
-        term.length > 1
-          ? {
-            name: {
-              startsWith: term,
-              mode: "insensitive",
-            },
-          }
-          : {
-            name: {
-              equals: term,
-              mode: "insensitive",
-            },
-          }
-      ),
+    const selectedFields = parseStrToArray(fields);
+
+    const queryOpts: any = {
+      where: whereFn,
+      ...(limit !== undefined ? { limit } : {}),
+      ...(offset !== undefined ? { offset } : {}),
     };
-  }
-  if (user_id) {
-    where.user_skill = {
-      some: {
-        user_id: user_id,
-      },
+
+    const rows = await db.query.skill.findMany(queryOpts);
+
+    // emulate Prisma select by trimming keys
+    items = rows.map((row) => {
+      const obj: any = {};
+      for (const f of selectedFields) {
+        if (f in row) {
+          obj[f] = (row as any)[f];
+        }
+      }
+      return obj;
+    });
+  } else {
+    // include mode (only when no fields)
+    const queryOpts: any = {
+      where: whereFn,
+      ...(limit !== undefined ? { limit } : {}),
+      ...(offset !== undefined ? { offset } : {}),
     };
-    include.user_skill = {
-      where: {
-        user_id: user_id,
-      },
-      include: {
-        proficiency_levels: {
-          orderBy: {
-            createdAt: "desc",
+
+    if (user_id) {
+      queryOpts.with = {
+        user_skill: {
+          where: (us: any, { eq }: any) => eq(us.user_id, user_id),
+          with: {
+            proficiency_levels: {
+              orderBy: (pl: any, { desc }: any) => [desc(pl.createdAt)],
+            },
           },
         },
-      },
-    };
+      };
+    }
+
+    items = await db.query.skill.findMany(queryOpts);
   }
 
-  if (importance) {
-    where = { ...where, image: { not: null }, importance: { gte: JSON.parse(importance) } };
-  }
+  const queryOpts: any = {
+    where: whereFn,
+  };
+  const allMatching = await db.query.skill.findMany(queryOpts);
+  const count = allMatching.length;
 
-  if (recommended !== undefined && recommended !== "-1") {
-    where = { ...where, recommended: JSON.parse(recommended) };
-  }
-  // prioritize select over include
-  const selectOrInclude = select ? { select } : { include };
-  const result = await prisma.skill.findMany({
-    where,
-    ...pagination,
-    ...selectOrInclude,
-  });
-  count = await prisma.skill.count({
-    where,
-  });
-  return { items: result, count };
+  return { items, count };
 };
 
 export const readSkillsForGraph = async (params: any, query?: any) => {
   const { user_id } = params;
-  const { filter, recommended } = query;
-  let where: any = {};
-  const include: any = {};
+  const { filter, recommended } = query || {};
 
+  const whereConditions: any[] = [];
+
+  // filter: limit to related skills
   if (filter !== undefined && filter !== "-1") {
     const relatedSkillIds = await getAllRelatedSkills(Number(filter));
-    where = {
-      id: {
-        in: [...relatedSkillIds.values()],
-      },
-    };
+    const idList = [...relatedSkillIds.values()];
+
+    if (idList.length) {
+      whereConditions.push(inArray(skill.id, idList));
+    } else {
+      // no related skills – force empty result
+      whereConditions.push(eq(skill.id, -1));
+    }
   }
 
+  // recommended filter
   if (recommended !== undefined && recommended !== "-1") {
-    where = { ...where, recommended: JSON.parse(recommended) };
+    const recommendedVal = JSON.parse(recommended);
+    whereConditions.push(eq(skill.recommended, recommendedVal));
   }
+
+  const whereExpr =
+    whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+  const withRelations: any = {
+    parents: true,
+    children: true,
+  };
 
   if (user_id) {
-    where.user_skill = {
-      some: {
-        user_id: user_id,
-      },
-    };
-    include.user_skill = {
-      where: {
-        user_id: user_id,
-      },
-      include: {
+    // load only this user's user_skill rows
+    withRelations.user_skill = {
+      where: (us: any, { eq }: any) => eq(us.user_id, user_id),
+      with: {
         proficiency_levels: {
-          orderBy: {
-            createdAt: "desc",
-          },
+          orderBy: (pl: any, { desc }: any) => [desc(pl.createdAt)],
         },
       },
     };
   }
 
-  const skills = await prisma.skill.findMany({
-    where,
-    include: {
-      parents: true,
-      _count: {
-        select: {
-          children: true,
-        },
-      },
-      ...include,
-    },
+  const skillsRes = await db.query.skill.findMany({
+    where: whereExpr,
+    with: withRelations,
   });
-  return { items: skills };
+
+  // 👉 Emulate Prisma's:
+  // where: { user_skill: { some: { user_id } } }
+  let filteredSkills = skillsRes;
+  if (user_id) {
+    filteredSkills = skillsRes.filter(
+      (s: any) => s.user_skill && s.user_skill.length > 0
+    );
+  }
+
+  // Prisma: `_count.children`
+  const items = filteredSkills.map((s: any) => ({
+    ...s,
+    _count: {
+      children: s.children ? s.children.length : 0,
+    },
+  }));
+
+  return { items };
 };
 
-/***
- * Note: Used to get skill_id by name to migrate old user proficiency level from mongodb to postgres
- */
 export const readSkillsByName = async (oldSkills: any) => {
-  const skills = await prisma.skill.findMany({
-    where: { name: { in: [...oldSkills.map(({ name }) => name)] } },
+  const names = oldSkills.map(({ name }: any) => name);
+  const items = await db.query.skill.findMany({
+    where: (s, { inArray }) => inArray(s.name, names),
   });
-  return { items: skills };
+  return { items };
 };
 
 export const readSkill = async (params: any) => {
   const { id, user_id } = params;
-  let where: any = {};
 
-  if (user_id) {
-    where = { user_id: { not: user_id } };
-  }
-  const skill = await prisma.skill.findUnique({
-    where: { id: Number(id) },
-    include: {
+  const skillRow = await db.query.skill.findFirst({
+    where: (s, { eq }) => eq(s.id, Number(id)),
+    with: {
       parents: {
-        include: {
+        with: {
           target_skill: true,
         },
-        take: 10,
+        limit: 10,
       },
       children: {
-        include: {
+        with: {
           source_skill: true,
         },
-        take: 10,
+        limit: 10,
       },
       user_skill: {
-        include: {
+        with: {
           proficiency_levels: {
-            orderBy: {
-              createdAt: "desc",
-            },
-            take: 1,
+            orderBy: (pl, { desc }) => [desc(pl.createdAt)],
+            limit: 1,
           },
         },
-        where,
-        take: 10,
-      },
-      _count: {
-        select: {
-          parents: true,
-          children: true,
-          user_skill: {
-            where,
-          },
-        },
+        limit: 10,
       },
     },
   });
-  return skill;
+
+  if (!skillRow) return null;
+
+  let filteredUserSkill = skillRow.user_skill;
+  if (user_id) {
+    filteredUserSkill = skillRow.user_skill.filter(
+      (us: any) => us.user_id !== user_id
+    );
+  }
+
+  const result = {
+    ...skillRow,
+    user_skill: filteredUserSkill,
+    _count: {
+      parents: skillRow.parents.length,
+      children: skillRow.children.length,
+      user_skill: filteredUserSkill.length,
+    },
+  };
+
+  return result;
 };
 
 export const updateSkill = async (params: any, data: any) => {
   const { id } = params;
-  const { name, image, importance = 30, recommended = true } = data;
-  const record = await prisma.skill.update({
-    where: { id: Number(id) },
-    data: { name, image, importance, recommended },
-  });
+  const {
+    name,
+    image,
+    importance = 30,
+    recommended = true,
+  } = data || {};
+
+  const [record] = await db
+    .update(skill)
+    .set({ name, image, importance, recommended })
+    .where(eq(skill.id, Number(id)))
+    .returning();
+
   return record;
 };
 
 export const deleteSkill = async (params: any) => {
   const { id } = params;
-  await prisma.skill.delete({ where: { id: Number(id) } });
+  await db.delete(skill).where(eq(skill.id, Number(id)));
   return { id };
 };
 
 export const compareSkillsForGraph = async (params: any, query: any) => {
   const { user_id } = params;
-  const { compareTo, filter, recommended } = query;
+  const { compareTo, filter, recommended } = query || {};
 
   if (!user_id) {
     throw new Error("User ID is required for comparison");
   }
 
-  let include: any = {};
-  let where: any = {};
+  const whereConditions: any[] = [];
+
   if (filter !== undefined && filter !== "-1") {
     const relatedSkillIds = await getAllRelatedSkills(Number(filter));
-    where = {
-      id: {
-        in: [...relatedSkillIds.values()],
-      },
-    };
+    const idList = [...relatedSkillIds.values()];
+    if (idList.length) {
+      whereConditions.push(inArray(skill.id, idList));
+    } else {
+      whereConditions.push(eq(skill.id, -1));
+    }
   }
 
   if (recommended !== undefined && recommended === "true") {
-    where = { ...where, recommended: JSON.parse(recommended) };
+    const recommendedVal = JSON.parse(recommended);
+    whereConditions.push(eq(skill.recommended, recommendedVal));
   }
 
-  // Base include object
-  include = {
+  const whereExpr =
+    whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+  const baseWith: any = {
     parents: true,
-    _count: {
-      select: {
-        children: true,
-      },
-    },
+    children: true,
   };
 
-  // If comparing to all skills
+  let skillsRes: any[] = [];
+
   if (compareTo === "all") {
-    // Include user's skills
-    include.user_skill = {
-      where: {
-        user_id,
-      }
+    baseWith.user_skill = {
+      where: (us, { eq }) => eq(us.user_id, user_id),
     };
 
-    const skills = await prisma.skill.findMany({
-      where,
-      include,
+    skillsRes = await db.query.skill.findMany({
+      where: whereExpr,
+      with: baseWith,
     });
 
-    // Process skills to add comparison data
-    const processedSkills = skills.map(skill => {
-      const userHasSkill = skill.user_skill && skill.user_skill.length > 0;
-
+    const processedSkills = skillsRes.map((s) => {
+      const userHasSkill = s.user_skill && s.user_skill.length > 0;
       return {
-        ...skill,
+        ...s,
         userHasSkill,
-        comparisonStatus: userHasSkill ? 'has-skill' : 'missing-skill',
+        comparisonStatus: userHasSkill ? "has-skill" : "missing-skill",
       };
     });
 
     return { items: processedSkills };
   }
 
-  // If comparing to another user
-  if (compareTo !== "all") {
-    // Include both users' skills
-    include.user_skill = {
-      where: {
-        OR: [
-          { user_id },
-          { user_id: compareTo }
-        ]
-      },
+  baseWith.user_skill = {
+    where: (us, { or, eq }) =>
+      or(eq(us.user_id, user_id), eq(us.user_id, compareTo)),
+  };
+
+  skillsRes = await db.query.skill.findMany({
+    where: whereExpr,
+    with: baseWith,
+  });
+
+  const processedSkills = skillsRes.map((s) => {
+    const userSkillRow = s.user_skill.find(
+      (us: any) => us.user_id === user_id
+    );
+    const comparisonUserSkillRow = s.user_skill.find(
+      (us: any) => us.user_id === compareTo
+    );
+
+    const userHasSkill = !!userSkillRow;
+    const comparisonUserHasSkill = !!comparisonUserSkillRow;
+
+    let comparisonStatus: string;
+    if (userHasSkill && !comparisonUserHasSkill) {
+      comparisonStatus = "only-user-has-skill";
+    } else if (!userHasSkill && comparisonUserHasSkill) {
+      comparisonStatus = "only-comparison-user-has-skill";
+    } else if (userHasSkill && comparisonUserHasSkill) {
+      comparisonStatus = "both-have-skill";
+    } else {
+      comparisonStatus = "neither-has-skill";
+    }
+
+    return {
+      ...s,
+      userHasSkill,
+      comparisonUserHasSkill,
+      comparisonStatus,
     };
+  });
 
-    const skills = await prisma.skill.findMany({
-      where,
-      include,
-    });
-
-    // Process skills to add comparison data
-    const processedSkills = skills.map(skill => {
-      const userSkill = skill.user_skill.find((us: any) => us.user_id === user_id);
-      const comparisonUserSkill = skill.user_skill.find((us: any) => us.user_id === compareTo);
-
-      const userHasSkill = !!userSkill;
-      const comparisonUserHasSkill = !!comparisonUserSkill;
-
-      let comparisonStatus;
-      if (userHasSkill && !comparisonUserHasSkill) {
-        comparisonStatus = 'only-user-has-skill';
-      } else if (!userHasSkill && comparisonUserHasSkill) {
-        comparisonStatus = 'only-comparison-user-has-skill';
-      } else if (userHasSkill && comparisonUserHasSkill) {
-        comparisonStatus = 'both-have-skill';
-      } else {
-        comparisonStatus = 'neither-has-skill';
-      }
-
-      return {
-        ...skill,
-        userHasSkill,
-        comparisonUserHasSkill,
-        comparisonStatus,
-      };
-    });
-
-    return { items: processedSkills };
-  }
-}
+  return { items: processedSkills };
+};

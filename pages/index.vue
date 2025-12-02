@@ -35,8 +35,8 @@ const getSkills = async () => {
 };
 
 watch(
-  () => route.query, // Watch only the query part of the route
+  () => route.query,
   () => getSkills(),
-  { deep: true } // Enables deep watching for reactive objects like `query`
+  { deep: true }
 );
 </script>
