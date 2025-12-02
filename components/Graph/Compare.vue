@@ -67,7 +67,11 @@ const resetDisable = computed(() => compareTo.value !== "all");
 
 onMounted(() => {
   const { user_id } = route.params;
-  if (user_id && loggedInUser.value.username !== user_id) {
+  if (
+    loggedInUser.value &&
+    user_id &&
+    loggedInUser.value.username !== user_id
+  ) {
     items.value.push({
       name: "Your skills",
       id: loggedInUser.value.username,

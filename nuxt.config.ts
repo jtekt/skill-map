@@ -4,7 +4,10 @@ export default defineNuxtConfig({
   build: {
     transpile: ["vuetify"],
   },
-
+  imports: {
+    autoImport: true,
+  },
+  components: true,
   modules: [
     "@moreillon/nuxt-oidc",
     (_options, nuxt) => {
@@ -43,7 +46,9 @@ export default defineNuxtConfig({
       oidcAuthority: "",
       oidcClientId: "",
       oidcAudience: "",
-      nodeEnv: "",
+      developer: "",
+      developerHomepage: "",
+      appRepo: "",
     },
   },
   compatibilityDate: "2024-07-08",

@@ -88,9 +88,11 @@ const props = defineProps<{
 }>();
 const route = useRoute();
 const zoomed = ref(false);
-const link = ref();
-const skillNode = ref();
-const conceptNode = ref();
+const link = ref<any>();
+const skillNode = ref<any>();
+const conceptNode = ref<any>();
+const simulationRef = ref<d3.Simulation<any, any> | null>(null);
+
 const hideFilter = computed(() => {
   return route.name !== "index" && route.name !== "users-user_id";
 });
@@ -128,54 +130,61 @@ const reload = () => {
   main();
 };
 
-const zoom = computed(() => {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  return d3
-    .zoom<SVGSVGElement, unknown>()
-    .scaleExtent([0.3, 5]) // This control how much you can unzoom (x0.5) and zoom (x20)
-    .extent([
-      [0, 0],
-      [width, height],
-    ])
-    .on("zoom", ({ transform }, d) => {
-      link.value.attr("transform", transform);
-      skillNode.value.attr("transform", transform);
-      conceptNode.value.attr("transform", transform);
-      if (transform.x === 0 || transform.y === 0) {
-        zoomed.value = false;
-      } else zoomed.value = true;
-    });
-});
+// global zoom instance (not re-created every time)
+const zoom = d3
+  .zoom<SVGSVGElement, unknown>()
+  .scaleExtent([0.3, 5])
+  .on("zoom", ({ transform }) => {
+    if (link.value) link.value.attr("transform", transform);
+    if (skillNode.value) skillNode.value.attr("transform", transform);
+    if (conceptNode.value) conceptNode.value.attr("transform", transform);
+
+    // consider "zoomed" if not at identity
+    zoomed.value = !(transform.x === 0 && transform.y === 0);
+  });
 
 const resetZoom = () => {
-  const svg = d3.select<SVGSVGElement, unknown>("svg");
-  svg.transition().duration(750).call(zoom.value.transform, d3.zoomIdentity);
+  const svg = d3.select<SVGSVGElement, unknown>("svg.graph_wrapper");
+  svg
+    .transition()
+    .duration(750)
+    .call((zoom as any).transform, d3.zoomIdentity);
 };
 
 const makeLabel = (n: any) => `${n.name}`;
-
 const computeSkillSize = (node: any) => node.importance;
 
 const main = async () => {
-  // check first if looking for recommended skills.
-  // Otherwise, set opacity to of not recommended skills to 0.3
+  if (!props.nodes || !props.nodes.length) return;
+
+  // stop previous simulation if any
+  if (simulationRef.value) {
+    simulationRef.value.stop();
+    simulationRef.value = null;
+  }
+
   const { recommended } = route.query;
-  // Specify the dimensions of the chart.
+
   const width = window.innerWidth;
   const height = window.innerHeight - 110;
 
+  // update zoom extent based on current viewport
+  (zoom as any).extent([
+    [0, 0],
+    [width, height],
+  ]);
+
   // Compute links from nodes and their parents
   const links = props.nodes.reduce(
-    (acc, { parents }) =>
+    (acc: any[], { parents }: any) =>
       parents.length
         ? [
             ...acc,
             ...parents
-              .filter((r) =>
-                props.nodes.find((n) => n.id === r.target_skill_id)
+              .filter((r: any) =>
+                props.nodes.find((n: any) => n.id === r.target_skill_id)
               )
-              .map((r) => ({
+              .map((r: any) => ({
                 source: r.source_skill_id,
                 target: r.target_skill_id,
               })),
@@ -184,7 +193,7 @@ const main = async () => {
     []
   );
 
-  // Create a simulation with several forces.
+  // Create the simulation
   const simulation = d3
     .forceSimulation(props.nodes as any)
     .force(
@@ -203,11 +212,17 @@ const main = async () => {
     .force("center", d3.forceCenter(width / 2, height / 2))
     .force("x", d3.forceX())
     .force("y", d3.forceY())
-    .on("tick", ticked);
+    .alphaDecay(0.08)
+    .on("tick", ticked)
+    .on("end", () => {
+      simulation.stop();
+    });
+
+  simulationRef.value = simulation;
 
   // Create the SVG container.
   const svg = d3
-    .select<SVGSVGElement, unknown>("svg")
+    .select<SVGSVGElement, unknown>("svg.graph_wrapper")
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
@@ -218,19 +233,20 @@ const main = async () => {
       }px; height: ${height}px; overflow: hidden !important;`
     );
 
-  // Add a line for each link, and a circle for each node.
+  // Add a line for each link
   link.value = svg
     .append("g")
     .attr("stroke", "#999")
-    .attr("stroke-opacity", 0.1) // OG 0.15
+    .attr("stroke-opacity", 0.1)
     .selectAll("line")
     .data(links)
     .join("line")
     .attr("stroke-width", 1);
 
+  // Concept nodes (text-only)
   conceptNode.value = svg
     .append("g")
-    .selectAll("node") // Not sure what to put here
+    .selectAll("node")
     .data(props.nodes.filter((n: any) => !n.image))
     .enter()
     .append("a")
@@ -247,14 +263,15 @@ const main = async () => {
   conceptNode.value.call(
     d3
       .drag()
-      .on("start", dragstarted)
-      .on("drag", dragged)
-      .on("end", dragended) as any
+      .on("start", dragstarted as any)
+      .on("drag", dragged as any)
+      .on("end", dragended as any) as any
   );
 
+  // Skill nodes (image + text)
   skillNode.value = svg
     .append("g")
-    .selectAll("node") // Not sure what to put here
+    .selectAll("node")
     .data(props.nodes.filter((n: any) => n.image))
     .enter()
     .append("a")
@@ -265,26 +282,26 @@ const main = async () => {
 
   const haloNode = skillNode.value
     .append("circle")
-    .attr("r", (d) => computeSkillSize(d) * 0.8)
+    .attr("r", (d: any) => computeSkillSize(d) * 0.8)
     .attr("fill", "transparent")
-    .attr("stroke", (d) =>
+    .attr("stroke", (d: any) =>
       enableComparison.value ? getComparisonColor(d) : "transparent"
     )
     .attr("stroke-width", 3)
-    .attr("stroke-opacity", (d) => (enableComparison.value ? 0.8 : 0))
-    .attr("opacity", (d) => (enableComparison.value ? 0.6 : 0));
+    .attr("stroke-opacity", (d: any) => (enableComparison.value ? 0.8 : 0))
+    .attr("opacity", (d: any) => (enableComparison.value ? 0.6 : 0));
 
   const skillNodeImage = skillNode.value
     .append("image")
     .attr("xlink:href", (d: any) => d.image || "/icons/school.png")
-    .attr("height", computeSkillSize)
-    .attr("width", computeSkillSize)
+    .attr("height", computeSkillSize as any)
+    .attr("width", computeSkillSize as any)
     .attr(
       "transform",
-      (n) =>
+      (n: any) =>
         `translate(-${0.5 * computeSkillSize(n)} -${0.5 * computeSkillSize(n)})`
     )
-    .style("opacity", (n) => {
+    .style("opacity", (n: any) => {
       if (recommended && JSON.parse(recommended as string) === false) return 1;
       else if (n.recommended) return 1;
       else return 0.3;
@@ -302,58 +319,81 @@ const main = async () => {
   skillNode.value.call(
     d3
       .drag()
-      .on("start", dragstarted)
-      .on("drag", dragged)
-      .on("end", dragended) as any
+      .on("start", dragstarted as any)
+      .on("drag", dragged as any)
+      .on("end", dragended as any) as any
   );
 
-  // Set the position attributes of links and nodes each time the simulation ticks.
-  function ticked() {
-    link.value
-      .attr("x1", (d: any) => d.source.x)
-      .attr("y1", (d: any) => d.source.y)
-      .attr("x2", (d: any) => d.target.x)
-      .attr("y2", (d: any) => d.target.y);
+  // Throttle DOM updates to once per animation frame
+  let ticking = false;
 
-    if (enableComparison.value)
-      haloNode.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
-    skillNodeImage.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
-    skillNodeText.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
-    conceptNode.value.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
+  function ticked() {
+    if (ticking) return;
+    ticking = true;
+
+    requestAnimationFrame(() => {
+      link.value
+        .attr("x1", (d: any) => d.source.x)
+        .attr("y1", (d: any) => d.source.y)
+        .attr("x2", (d: any) => d.target.x)
+        .attr("y2", (d: any) => d.target.y);
+
+      if (enableComparison.value) {
+        haloNode.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
+      }
+
+      skillNodeImage.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
+
+      skillNodeText.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
+
+      conceptNode.value.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
+
+      ticking = false;
+    });
   }
 
-  // Reheat the simulation when drag starts, and fix the subject position.
   function dragstarted(event: any) {
     if (!event.active) simulation.alphaTarget(0.3).restart();
     event.subject.fx = event.subject.x;
     event.subject.fy = event.subject.y;
   }
 
-  // Update the subject (dragged node) position during drag.
   function dragged(event: any) {
     event.subject.fx = event.x;
     event.subject.fy = event.y;
   }
 
-  // Restore the target alpha so the simulation cools after dragging ends.
-  // Unfix the subject position now that it’s no longer being dragged.
   function dragended(event: any) {
     if (!event.active) simulation.alphaTarget(0);
     event.subject.fx = null;
     event.subject.fy = null;
   }
 
-  svg.call(zoom.value).call(zoom.value.transform, d3.zoomIdentity);
+  svg.call(zoom as any).call((zoom as any).transform, d3.zoomIdentity);
 };
+
+// debounced resize -> reload
+let resizeTimeout: number | null = null;
+
+const handleResize = () => {
+  if (resizeTimeout !== null) {
+    clearTimeout(resizeTimeout);
+  }
+  resizeTimeout = window.setTimeout(() => {
+    reload();
+    resizeTimeout = null;
+  }, 200);
+};
+
 // Get comparison color based on status
-const getComparisonColor = (node) => {
+const getComparisonColor = (node: any) => {
   if (!enableComparison.value) return "#E0E0E0"; // Default color when comparison is disabled
 
   switch (node.comparisonStatus) {
     case "has-skill":
       return "#4CAF50"; // Green for skills the user has
     case "missing-skill":
-      return "transparent"; // Gray for skills the user doesn't have
+      return "transparent"; // Gray / transparent for skills the user doesn't have
     case "only-user-has-skill":
       return "#4CAF50"; // Green for skills only the user has
     case "only-comparison-user-has-skill":
@@ -361,7 +401,7 @@ const getComparisonColor = (node) => {
     case "both-have-skill":
       return "#2196F3"; // Blue for skills both users have
     case "neither-has-skill":
-      return "transparent"; // Dark gray for skills neither user has
+      return "transparent";
     default:
       return "#E0E0E0";
   }
@@ -376,21 +416,25 @@ const doAdd = async (data: any) => {
       alert(error.message);
     });
 };
+
+// only rebuild graph when nodes reference changes
 watch(
-  () => props.nodes, // Watch only the query part of the route
+  () => props.nodes,
   (newValue, oldValue) => {
     if (newValue === oldValue) return;
+    if (!newValue) return;
     reload();
-  },
-  { deep: true } // Enables deep watching for reactive objects like `query`
+  }
 );
 
 onMounted(() => {
-  window.addEventListener("resize", reload);
+  window.addEventListener("resize", handleResize);
+  main();
 });
 
 onUnmounted(() => {
-  window.removeEventListener("resize", reload);
+  window.removeEventListener("resize", handleResize);
+  simulationRef.value?.stop();
 });
 </script>
 

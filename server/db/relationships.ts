@@ -1,73 +1,139 @@
-import prisma from ".";
+import { db } from './index';
+import { relationship, skill } from './schema';
+import { eq, sql } from 'drizzle-orm';
 
 export const createRelationship = async (data: any) => {
   const { source_skill_id, target_skill_id } = data;
 
-  const relationship = {
-    source_skill_id,
-    target_skill_id,
+  const relData = {
+    source_skill_id: Number(source_skill_id),
+    target_skill_id: Number(target_skill_id),
   };
 
-  const relationshipRecord = await prisma.relationship.upsert({
-    where: { source_target: relationship },
-    update: relationship,
-    create: relationship,
-  });
+  const [relationshipRecord] = await db
+    .insert(relationship)
+    .values(relData)
+    .onConflictDoUpdate({
+      target: [relationship.source_skill_id, relationship.target_skill_id],
+      set: relData,
+    })
+    .returning();
+
   return { items: relationshipRecord };
 };
 
 export const readRelationships = async () => {
-  const relationships = await prisma.relationship.findMany({});
-  return { items: relationships };
+  const items = await db.select().from(relationship);
+  return { items };
 };
+
 
 export const readRelationship = async (params: any) => {
   const { id } = params;
-  const item = await prisma.relationship.findUnique({
-    where: { id: Number(id) },
-  });
-  return item;
+
+  const [item] = await db
+    .select()
+    .from(relationship)
+    .where(eq(relationship.id, Number(id)))
+    .limit(1);
+
+  return item ?? null;
 };
+
 
 export const deleteRelationship = async (params: any) => {
   const { id } = params;
-  const result = await prisma.relationship.delete({
-    where: { id: Number(id) },
-  });
+
+  const [result] = await db
+    .delete(relationship)
+    .where(eq(relationship.id, Number(id)))
+    .returning();
+
   return { result };
 };
 
 export const readSkillRelationShip = async (query: any) => {
-  const { page, take, source_skill_id, target_skill_id } = query;
-  let where: any = {};
-  let include: any = {};
+  const {
+    page = 1,
+    take = 10,
+    source_skill_id,
+    target_skill_id,
+  } = query;
 
-  let skip = (Number(page) - 1) * Number(take);
+  const pageNum = Number(page) || 1;
+  const takeNum = Number(take) || 10;
+  const skip = (pageNum - 1) * takeNum;
+
+  let whereExpr: any = undefined;
+  let mode: 'none' | 'fromSourceSkill' | 'fromTargetSkill' = 'none';
+
   if (source_skill_id) {
-    where = { source_skill_id: Number(source_skill_id) };
-    include = {
-      target_skill: true,
-    };
+    whereExpr = eq(
+      relationship.source_skill_id,
+      Number(source_skill_id),
+    );
+    mode = 'fromSourceSkill';
   }
 
   if (target_skill_id) {
-    where = {
-      target_skill_id: Number(target_skill_id),
-    };
-    include = {
-      source_skill: true,
-    };
+    // note: this overwrites previous where if both are passed
+    whereExpr = eq(
+      relationship.target_skill_id,
+      Number(target_skill_id),
+    );
+    mode = 'fromTargetSkill';
   }
 
-  const skills = await prisma.relationship.findMany({
-    where,
-    skip: Number(skip),
-    take: Number(take),
-    include,
-  });
+  const relRows = await db
+    .select()
+    .from(relationship)
+    .where(whereExpr)
+    .limit(takeNum)
+    .offset(skip);
 
-  const count = await prisma.relationship.count({
-    where,
-  });
-  return { items: skills, count };
+  let items: any[] = [];
+
+  if (mode === 'fromSourceSkill') {
+    items = await Promise.all(
+      relRows.map(async (rel) => {
+        const [targetSkillRow] = await db
+          .select()
+          .from(skill)
+          .where(eq(skill.id, rel.target_skill_id))
+          .limit(1);
+
+        return {
+          ...rel,
+          target_skill: targetSkillRow ?? null,
+        };
+      }),
+    );
+  } else if (mode === 'fromTargetSkill') {
+    items = await Promise.all(
+      relRows.map(async (rel) => {
+        const [sourceSkillRow] = await db
+          .select()
+          .from(skill)
+          .where(eq(skill.id, rel.source_skill_id))
+          .limit(1);
+
+        return {
+          ...rel,
+          source_skill: sourceSkillRow ?? null,
+        };
+      }),
+    );
+  } else {
+    items = relRows;
+  }
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(relationship)
+    .where(whereExpr);
+
+  return {
+    items,
+    count: Number(count ?? 0),
+  };
 };

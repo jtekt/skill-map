@@ -26,6 +26,12 @@ spec:
               value: http://10.115.1.100:30416/realms/jtekt
             - name: NUXT_PUBLIC_OIDC_CLIENT_ID
               value: gui
+            - name: NUXT_PUBLIC_DEVELOPER
+              value: Leah Ishiguro
+            - name: NUXT_PUBLIC_DEVELOPER_HOMEPAGE
+              value: http://10.115.1.14/leahishiguro
+            - name: NUXT_APP_REPO
+              value: http://10.115.1.14/eks/moreillon/skill_map_back
       imagePullSecrets:
         - name: ${K8S_ECR_SECRET_NAME}
 ---
