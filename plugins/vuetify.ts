@@ -3,7 +3,7 @@ import "@mdi/font/css/materialdesignicons.css";
 
 import "vuetify/styles";
 import { createVuetify } from "vuetify";
-import i18n from "~/i18n";
+import i18n from "~/locales/i18n";
 import { useI18n } from "vue-i18n";
 
 // Vuetify
