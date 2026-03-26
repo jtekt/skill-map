@@ -1,9 +1,7 @@
-import { sql, eq, and, or, gte, inArray, isNotNull, ilike, desc } from "drizzle-orm";
-import { db } from "."; // your drizzle instance
-import {
-  skill,
-  user_skill,
-} from "./schema";
+import { sql, eq, and, inArray } from "drizzle-orm";
+import { db } from ".";
+import { skill, user_skill } from "./schema";
+import { getAllRelatedSkills } from "../utils/getAllRelatedSkills";
 
 const memoCache = new Map<number, Set<number>>();
 
@@ -19,15 +17,12 @@ export const resetSequence = async (tableName: string, idField: string) => {
           pg_get_serial_sequence('${tableName}', '${idField}'),
           (SELECT MAX(${idField}) FROM ${tableName})
         );
-      `)
+      `),
     );
     console.log(`Sequence for ${tableName} reset successfully.`);
   } catch (error) {
     console.log(error);
   }
-  // Drizzle connections are usually pooled; no explicit disconnect.
-  // Usage:
-  // await resetSequence("skill", "id");
 };
 
 export const createSkill = async (data: any) => {
@@ -40,38 +35,6 @@ export const readSkillCategories = async () => {
     where: (s, { isNull }) => isNull(s.image),
   });
   return { items };
-};
-
-const getAllRelatedSkills = async (
-  skillId: number,
-  collectedSkills: Set<number> = new Set()
-): Promise<Set<number>> => {
-  if (memoCache.has(skillId)) {
-    const cached = memoCache.get(skillId) || new Set();
-    cached.forEach((id) => collectedSkills.add(id));
-    return cached;
-  }
-
-  collectedSkills.add(skillId);
-
-  const relations = await db.query.relationship.findMany({
-    where: (r, { eq }) => eq(r.target_skill_id, skillId),
-    with: {
-      source_skill: true,
-      target_skill: true,
-    },
-  });
-
-  for (const rel of relations) {
-    const childSkillId = rel.source_skill_id;
-
-    if (!collectedSkills.has(childSkillId)) {
-      await getAllRelatedSkills(childSkillId, collectedSkills);
-    }
-  }
-
-  memoCache.set(skillId, new Set(collectedSkills));
-  return collectedSkills;
 };
 
 export const readSkills = async (params: any, query?: any) => {
@@ -112,17 +75,26 @@ export const readSkills = async (params: any, query?: any) => {
   }
 
   const whereFn = (s: typeof skill, op: any) => {
-    const { and: andOp, or: orOp, ilike: ilikeOp, gte: gteOp, eq: eqOp, isNotNull: isNotNullOp, inArray: inArrayOp } = op;
+    const {
+      and: andOp,
+      or: orOp,
+      ilike: ilikeOp,
+      gte: gteOp,
+      eq: eqOp,
+      isNotNull: isNotNullOp,
+      inArray: inArrayOp,
+    } = op;
     const conds: any[] = [];
 
     // skills name search
     if (skillsStr) {
       const searchTerms = parseStrToArray(skillsStr);
       if (searchTerms.length > 0) {
-        const ors = searchTerms.map((term: string) =>
-          term.length > 1
-            ? ilikeOp(s.name, `${term}%`) // startsWith (case-insensitive)
-            : ilikeOp(s.name, term)       // equals (case-insensitive-ish)
+        const ors = searchTerms.map(
+          (term: string) =>
+            term.length > 1
+              ? ilikeOp(s.name, `${term}%`) // startsWith (case-insensitive)
+              : ilikeOp(s.name, term), // equals (case-insensitive-ish)
         );
         conds.push(orOp(...ors));
       }
@@ -260,7 +232,7 @@ export const readSkillsForGraph = async (params: any, query?: any) => {
   let filteredSkills = skillsRes;
   if (user_id) {
     filteredSkills = skillsRes.filter(
-      (s: any) => s.user_skill && s.user_skill.length > 0
+      (s: any) => s.user_skill && s.user_skill.length > 0,
     );
   }
 
@@ -318,7 +290,7 @@ export const readSkill = async (params: any) => {
   let filteredUserSkill = skillRow.user_skill;
   if (user_id) {
     filteredUserSkill = skillRow.user_skill.filter(
-      (us: any) => us.user_id !== user_id
+      (us: any) => us.user_id !== user_id,
     );
   }
 
@@ -337,12 +309,7 @@ export const readSkill = async (params: any) => {
 
 export const updateSkill = async (params: any, data: any) => {
   const { id } = params;
-  const {
-    name,
-    image,
-    importance = 30,
-    recommended = true,
-  } = data || {};
+  const { name, image, importance = 30, recommended = true } = data || {};
 
   const [record] = await db
     .update(skill)
@@ -427,11 +394,9 @@ export const compareSkillsForGraph = async (params: any, query: any) => {
   });
 
   const processedSkills = skillsRes.map((s) => {
-    const userSkillRow = s.user_skill.find(
-      (us: any) => us.user_id === user_id
-    );
+    const userSkillRow = s.user_skill.find((us: any) => us.user_id === user_id);
     const comparisonUserSkillRow = s.user_skill.find(
-      (us: any) => us.user_id === compareTo
+      (us: any) => us.user_id === compareTo,
     );
 
     const userHasSkill = !!userSkillRow;

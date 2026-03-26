@@ -2,7 +2,12 @@
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 export default defineNuxtConfig({
   nitro: {
-    storage: {},
+    storage: {
+      cache: {
+        driver: "fs",
+        base: "./server/storage/skills",
+      },
+    },
     devStorage: {},
   },
   build: {
