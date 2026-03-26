@@ -82,7 +82,7 @@ import useFetchApi from "~/composables/useFetchApi";
 const emit = defineEmits(["skill-added"]);
 
 const props = defineProps<{
-  nodes?: any;
+  nodes?: any[];
   loading: boolean;
   users?: any;
 }>();
@@ -92,6 +92,9 @@ const link = ref<any>();
 const skillNode = ref<any>();
 const conceptNode = ref<any>();
 const simulationRef = ref<d3.Simulation<any, any> | null>(null);
+
+// Debounced resize -> rebuild graph safely
+let resizeTimeout: number | null = null;
 
 const hideFilter = computed(() => {
   return route.name !== "index" && route.name !== "users-user_id";
@@ -104,125 +107,93 @@ const enableComparison = computed(() => {
 const routeConfig = computed(() => {
   const { user_id } = route.params;
   switch (route.name) {
-    case "index": {
-      return {
-        path: "/skills",
-        icon: "mdi-table",
-      };
-    }
-    case "users-user_id": {
-      return {
-        path: `/users/${user_id}/skills`,
-        icon: "mdi-table",
-      };
-    }
-    default: {
-      return {
-        path: "/",
-        icon: "mdi-graph",
-      };
-    }
+    case "index":
+      return { path: "/skills", icon: "mdi-table" };
+
+    case "users-user_id":
+      return { path: `/users/${user_id}/skills`, icon: "mdi-table" };
+
+    default:
+      return { path: "/", icon: "mdi-graph" };
   }
 });
 
-const reload = () => {
-  d3.selectAll(".graph_wrapper > *").remove();
-  main();
+const doAdd = async (data: any) => {
+  try {
+    await useFetchApi("/api/skills", { method: "POST", body: data });
+    emit("skill-added");
+  } catch (err: any) {
+    alert(err.message || "Error saving skill");
+  }
 };
 
-// global zoom instance (not re-created every time)
 const zoom = d3
   .zoom<SVGSVGElement, unknown>()
   .scaleExtent([0.3, 5])
-  .on("zoom", ({ transform }) => {
-    if (link.value) link.value.attr("transform", transform);
-    if (skillNode.value) skillNode.value.attr("transform", transform);
-    if (conceptNode.value) conceptNode.value.attr("transform", transform);
+  .on("zoom", (event) => {
+    const t = event.transform;
 
-    // consider "zoomed" if not at identity
-    zoomed.value = !(transform.x === 0 && transform.y === 0);
+    link.value?.attr("transform", t);
+    skillNode.value?.attr("transform", t);
+    conceptNode.value?.attr("transform", t);
+
+    zoomed.value = !(t.x === 0 && t.y === 0);
   });
 
 const resetZoom = () => {
-  const svg = d3.select<SVGSVGElement, unknown>("svg.graph_wrapper");
+  const svg = d3.select("svg.graph_wrapper");
   svg
     .transition()
-    .duration(750)
-    .call((zoom as any).transform, d3.zoomIdentity);
+    .duration(700)
+    .call(zoom.transform as any, d3.zoomIdentity);
 };
 
-const makeLabel = (n: any) => `${n.name}`;
-const computeSkillSize = (node: any) => node.importance;
+function destroyGraph() {
+  const svg = d3.select("svg.graph_wrapper");
+  svg.on(".zoom", null);
+  svg.selectAll("*").on(".", null);
+  svg.selectAll("*").remove();
 
-const main = async () => {
-  if (!props.nodes || !props.nodes.length) return;
-
-  // stop previous simulation if any
+  // Dispose simulation
   if (simulationRef.value) {
+    simulationRef.value.on("tick", null);
     simulationRef.value.stop();
+    simulationRef.value.nodes([]);
     simulationRef.value = null;
   }
 
-  const { recommended } = route.query;
+  link.value = null;
+  skillNode.value = null;
+  conceptNode.value = null;
+}
+
+function reload() {
+  destroyGraph();
+  createGraph();
+}
+
+const handleResize = () => {
+  if (resizeTimeout !== null) {
+    clearTimeout(resizeTimeout);
+  }
+
+  resizeTimeout = window.setTimeout(() => {
+    reload(); // SAFE NOW because destroyGraph clears everything
+    resizeTimeout = null;
+  }, 200);
+};
+
+function createGraph() {
+  if (!props.nodes || props.nodes.length === 0) return;
 
   const width = window.innerWidth;
   const height = window.innerHeight - 110;
 
-  // update zoom extent based on current viewport
-  (zoom as any).extent([
-    [0, 0],
-    [width, height],
-  ]);
-
-  // Compute links from nodes and their parents
-  const links = props.nodes.reduce(
-    (acc: any[], { parents }: any) =>
-      parents.length
-        ? [
-            ...acc,
-            ...parents
-              .filter((r: any) =>
-                props.nodes.find((n: any) => n.id === r.target_skill_id)
-              )
-              .map((r: any) => ({
-                source: r.source_skill_id,
-                target: r.target_skill_id,
-              })),
-          ]
-        : acc,
-    []
-  );
-
-  // Create the simulation
-  const simulation = d3
-    .forceSimulation(props.nodes as any)
-    .force(
-      "link",
-      d3.forceLink(links).id((d: any) => d.id)
-    )
-    .force(
-      "charge",
-      d3.forceManyBody().strength((d: any) => {
-        if (props.nodes.length < 25) return -(props.nodes.length * 400);
-        if (props.nodes.length < 50) return -(props.nodes.length * 50);
-        if (!d.image) return -120;
-        else return -(props.nodes.length * 5);
-      })
-    )
-    .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("x", d3.forceX())
-    .force("y", d3.forceY())
-    .alphaDecay(0.08)
-    .on("tick", ticked)
-    .on("end", () => {
-      simulation.stop();
-    });
-
-  simulationRef.value = simulation;
-
-  // Create the SVG container.
+  // fresh SVG
   const svg = d3
-    .select<SVGSVGElement, unknown>("svg.graph_wrapper")
+    .select(".graph")
+    .append("svg")
+    .attr("class", "graph_wrapper")
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
@@ -230,10 +201,53 @@ const main = async () => {
       "style",
       `width: ${
         width - 20
-      }px; height: ${height}px; overflow: hidden !important;`
+      }px; height: ${height}px; overflow: hidden !important;`,
     );
 
-  // Add a line for each link
+  zoom.extent([
+    [0, 0],
+    [width, height],
+  ]);
+
+  // links
+  const nodeIds = new Set(props.nodes.map((n: any) => n.id));
+  const links = props.nodes.flatMap(
+    (node: any) =>
+      node.parents
+        ?.filter((p: any) => nodeIds.has(p.target_skill_id))
+        .map((p: any) => ({
+          source: p.source_skill_id,
+          target: p.target_skill_id,
+        })) ?? [],
+  );
+
+  // simulation
+  const simulation = d3
+    .forceSimulation(props.nodes)
+    .force(
+      "link",
+      d3.forceLink(links).id((d: any) => d.id),
+    )
+    .force(
+      "charge",
+      d3.forceManyBody().strength((d: any) => {
+        // YOUR ORIGINAL FORCE RETURNS
+        if (props.nodes!.length < 25) return -(props.nodes!.length * 400);
+        if (props.nodes!.length < 50) return -(props.nodes!.length * 50);
+        if (!d.image) return -120;
+        return -(props.nodes!.length * 5);
+      }),
+    )
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("x", d3.forceX())
+    .force("y", d3.forceY())
+    .alphaDecay(0.08)
+    .on("tick", ticked)
+    .on("end", () => simulation.stop());
+
+  simulationRef.value = simulation;
+
+  // links
   link.value = svg
     .append("g")
     .attr("stroke", "#999")
@@ -243,88 +257,72 @@ const main = async () => {
     .join("line")
     .attr("stroke-width", 1);
 
-  // Concept nodes (text-only)
+  // concept nodes
   conceptNode.value = svg
     .append("g")
-    .selectAll("node")
-    .data(props.nodes.filter((n: any) => !n.image))
+    .selectAll("text")
+    .data(props.nodes.filter((n) => !n.image))
     .enter()
-    .append("a")
     .append("text")
     .attr("font-size", 10)
-    .attr("font-family", "Arial, Helvetica, sans-serif")
     .attr("fill", "#999")
     .attr("text-anchor", "middle")
-    .text(makeLabel)
-    .on("click", function (_, d: any) {
-      navigateTo(`/skills/${d.id}`);
-    });
+    .text((d) => d.name)
+    .on("click", (_, d) => navigateTo(`/skills/${d.id}`));
 
   conceptNode.value.call(
     d3
       .drag()
-      .on("start", dragstarted as any)
-      .on("drag", dragged as any)
-      .on("end", dragended as any) as any
+      .on("start.drag", dragStart)
+      .on("drag.drag", dragMove)
+      .on("end.drag", dragEnd),
   );
 
-  // Skill nodes (image + text)
+  // skill nodes
   skillNode.value = svg
     .append("g")
-    .selectAll("node")
-    .data(props.nodes.filter((n: any) => n.image))
+    .selectAll("a")
+    .data(props.nodes.filter((n) => n.image))
     .enter()
     .append("a")
-    .attr("class", "v-list-item v-list-item--link v-list-item--variant-text")
-    .on("click", function (_, d: any) {
-      navigateTo(`/skills/${d.id}`);
-    });
+    .on("click", (_, d) => navigateTo(`/skills/${d.id}`));
 
   const haloNode = skillNode.value
     .append("circle")
-    .attr("r", (d: any) => computeSkillSize(d) * 0.8)
+    .attr("r", (d) => d.importance * 0.8)
     .attr("fill", "transparent")
-    .attr("stroke", (d: any) =>
-      enableComparison.value ? getComparisonColor(d) : "transparent"
+    .attr("stroke", (d) =>
+      enableComparison.value ? getComparisonColor(d) : "transparent",
     )
     .attr("stroke-width", 3)
-    .attr("stroke-opacity", (d: any) => (enableComparison.value ? 0.8 : 0))
-    .attr("opacity", (d: any) => (enableComparison.value ? 0.6 : 0));
+    .attr("opacity", (d) => (enableComparison.value ? 0.6 : 0));
 
-  const skillNodeImage = skillNode.value
+  const skillImage = skillNode.value
     .append("image")
-    .attr("xlink:href", (d: any) => d.image || "/icons/school.png")
-    .attr("height", computeSkillSize as any)
-    .attr("width", computeSkillSize as any)
+    .attr("xlink:href", (d) => d.image || "/icons/school.png")
+    .attr("width", (d) => d.importance)
+    .attr("height", (d) => d.importance)
     .attr(
       "transform",
-      (n: any) =>
-        `translate(-${0.5 * computeSkillSize(n)} -${0.5 * computeSkillSize(n)})`
-    )
-    .style("opacity", (n: any) => {
-      if (recommended && JSON.parse(recommended as string) === false) return 1;
-      else if (n.recommended) return 1;
-      else return 0.3;
-    });
+      (d) => `translate(-${d.importance / 2} -${d.importance / 2})`,
+    );
 
-  const skillNodeText = skillNode.value
+  const skillText = skillNode.value
     .append("text")
-    .attr("fill", () => (enableComparison.value ? "black" : "#999"))
+    .attr("fill", "#999")
     .attr("text-anchor", "middle")
-    .attr("font-size", (n: any) => 0.3 * computeSkillSize(n))
-    .attr("font-family", "Arial, Helvetica, sans-serif")
-    .attr("transform", (n: any) => `translate(0 ${0.8 * computeSkillSize(n)})`)
-    .text(makeLabel);
+    .attr("font-size", (d) => d.importance * 0.3)
+    .attr("transform", (d) => `translate(0 ${d.importance * 0.8})`)
+    .text((d) => d.name);
 
   skillNode.value.call(
     d3
       .drag()
-      .on("start", dragstarted as any)
-      .on("drag", dragged as any)
-      .on("end", dragended as any) as any
+      .on("start.drag", dragStart)
+      .on("drag.drag", dragMove)
+      .on("end.drag", dragEnd),
   );
 
-  // Throttle DOM updates to once per animation frame
   let ticking = false;
 
   function ticked() {
@@ -339,51 +337,33 @@ const main = async () => {
         .attr("y2", (d: any) => d.target.y);
 
       if (enableComparison.value) {
-        haloNode.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
+        haloNode.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
       }
-
-      skillNodeImage.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
-
-      skillNodeText.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
-
+      skillImage.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
+      skillText.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
       conceptNode.value.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
 
       ticking = false;
     });
   }
 
-  function dragstarted(event: any) {
+  svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
+
+  function dragStart(event: any) {
     if (!event.active) simulation.alphaTarget(0.3).restart();
     event.subject.fx = event.subject.x;
     event.subject.fy = event.subject.y;
   }
-
-  function dragged(event: any) {
+  function dragMove(event: any) {
     event.subject.fx = event.x;
     event.subject.fy = event.y;
   }
-
-  function dragended(event: any) {
+  function dragEnd(event: any) {
     if (!event.active) simulation.alphaTarget(0);
     event.subject.fx = null;
     event.subject.fy = null;
   }
-
-  svg.call(zoom as any).call((zoom as any).transform, d3.zoomIdentity);
-};
-
-// debounced resize -> reload
-let resizeTimeout: number | null = null;
-
-const handleResize = () => {
-  if (resizeTimeout !== null) {
-    clearTimeout(resizeTimeout);
-  }
-  resizeTimeout = window.setTimeout(() => {
-    reload();
-    resizeTimeout = null;
-  }, 200);
-};
+}
 
 // Get comparison color based on status
 const getComparisonColor = (node: any) => {
@@ -407,38 +387,32 @@ const getComparisonColor = (node: any) => {
   }
 };
 
-const doAdd = async (data: any) => {
-  await useFetchApi("/api/skills", { method: "POST", body: data })
-    .then(() => {
-      emit("skill-added");
-    })
-    .catch((error) => {
-      alert(error.message);
-    });
-};
-
-// only rebuild graph when nodes reference changes
 watch(
-  () => props.nodes,
-  (newValue, oldValue) => {
-    if (newValue === oldValue) return;
-    if (!newValue) return;
-    reload();
-  }
+  () => props.nodes?.length,
+  () => reload(),
 );
 
 onMounted(() => {
   window.addEventListener("resize", handleResize);
-  main();
+  createGraph();
 });
 
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
-  simulationRef.value?.stop();
+  destroyGraph();
 });
 </script>
 
 <style>
+svg.graph_wrapper {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  overflow: hidden !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
 .graph {
   position: absolute;
   bottom: 0;
