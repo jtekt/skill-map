@@ -1,6 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 export default defineNuxtConfig({
+  nitro: {
+    storage: {},
+    devStorage: {},
+  },
   build: {
     transpile: ["vuetify"],
   },
@@ -16,7 +20,7 @@ export default defineNuxtConfig({
         config.plugins.push(
           vuetify({
             autoImport: true,
-          })
+          }),
         );
       });
     },
