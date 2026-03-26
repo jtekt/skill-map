@@ -190,10 +190,10 @@ function createGraph() {
   const height = window.innerHeight - 110;
 
   // fresh SVG
-  const svg = d3
-    .select(".graph")
-    .append("svg")
-    .attr("class", "graph_wrapper")
+  const svg = d3.select("svg.graph_wrapper");
+  svg.selectAll("*").remove();
+
+  svg
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
@@ -347,7 +347,7 @@ function createGraph() {
     });
   }
 
-  svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
+  svg.call(zoom as any).call((zoom as any).transform, d3.zoomIdentity);
 
   function dragStart(event: any) {
     if (!event.active) simulation.alphaTarget(0.3).restart();
