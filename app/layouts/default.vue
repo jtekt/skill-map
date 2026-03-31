@@ -22,7 +22,7 @@
           </v-btn>
           -->
 
-          <v-btn icon="mdi-logout" @click="logout" />
+          <v-btn icon="mdi-logout" @click="logout(currentProvider)" />
         </template>
       </AppHeader>
 
@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-const { user, logout } = useOidcAuth();
+const { user, logout, currentProvider } = useOidcAuth();
 const config = useRuntimeConfig();
 
 const title = "Skill Map";
