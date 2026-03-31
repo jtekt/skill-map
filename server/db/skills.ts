@@ -27,6 +27,13 @@ export const resetSequence = async (tableName: string, idField: string) => {
 
 export const createSkill = async (data: any) => {
   const [record] = await db.insert(skill).values(data).returning();
+
+  if (!record) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: `Failed to save skill with name "${data.name}"`,
+    });
+  }
   return record;
 };
 

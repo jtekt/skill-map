@@ -1,4 +1,4 @@
-import { removeSkillFromUser } from "~/server/db/userSkills";
+import { removeSkillFromUser } from "~~/server/db/userSkills";
 
 export default defineEventHandler(async (event) => {
   const params = getRouterParams(event);

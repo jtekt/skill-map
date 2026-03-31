@@ -1,14 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 export default defineNuxtConfig({
-  nitro: {
-    storage: {
-      cache: {
-        driver: "fs",
-        base: "./server/storage/skills",
-      },
+  app: {
+    head: {
+      title: "Skill Map",
     },
-    devStorage: {},
   },
   build: {
     transpile: ["vuetify"],
@@ -18,7 +14,7 @@ export default defineNuxtConfig({
   },
   components: true,
   modules: [
-    "@moreillon/nuxt-oidc",
+    "nuxt-oidc-auth",
     (_options, nuxt) => {
       nuxt.hooks.hook("vite:extendConfig", (config) => {
         // @ts-expect-error
@@ -29,9 +25,33 @@ export default defineNuxtConfig({
         );
       });
     },
-    //...
   ],
 
+  oidc: {
+    providers: {
+      keycloak: {
+        audience: "account",
+        baseUrl: "",
+        authorizationUrl: "",
+        tokenUrl: "",
+        userInfoUrl: "",
+        logoutUrl: "",
+        clientId: "",
+        clientSecret: "",
+        redirectUri: "",
+        logoutRedirectUri: "",
+        exposeAccessToken: true,
+      },
+    },
+    session: {
+      expirationCheck: true,
+      automaticRefresh: true,
+    },
+    middleware: {
+      globalMiddlewareEnabled: true,
+      customLoginPage: false,
+    },
+  },
   css: ["vuetify/styles"],
 
   vite: {
@@ -48,17 +68,13 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   runtimeConfig: {
-    // Keys within public are also exposed client-side
     public: {
       apiBase: "/api",
       userManagerApiUrl: "",
-      oidcAuthority: "",
-      oidcClientId: "",
-      oidcAudience: "",
       developer: "",
       developerHomepage: "",
       appRepo: "",
     },
   },
-  compatibilityDate: "2024-07-08",
+  compatibilityDate: "2025-07-15",
 });
