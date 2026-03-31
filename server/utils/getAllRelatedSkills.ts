@@ -1,49 +1,75 @@
-import { db } from "@/server/db";
-const TTL_MS = 1000 * 60 * 60 * 24;
+import { LRUCache } from "lru-cache";
+import { db } from "../db";
+
+const getTTLUntilEOD = () => {
+  const now = new Date();
+  const jstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+
+  const endOfDayJST = new Date(jstNow);
+  endOfDayJST.setHours(23, 59, 59, 999);
+
+  return endOfDayJST.getTime() - jstNow.getTime();
+};
+
+const cache = new LRUCache<number, Set<number>>({
+  max: 500,
+  ttlAutopurge: true,
+});
+
+const inFlight = new Map<number, Promise<Set<number>>>();
 
 export const getAllRelatedSkills = async (
   skillId: number,
-  collected: Set<number> = new Set(),
 ): Promise<Set<number>> => {
-  const storage = useStorage("skills");
-
-  const cacheKey = `skill:${skillId}`;
-
-  // ----- 1. Check cache -----
-  const cached = await storage.getItem<{ ids: number[]; expires: number }>(
-    cacheKey,
-  );
-
-  if (cached && cached.expires > Date.now()) {
-    cached.ids.forEach((id) => collected.add(id));
-    return collected;
+  // ----- 1. Cache hit -----
+  const cached = cache.get(skillId);
+  if (cached) {
+    return new Set(cached);
   }
 
-  // ----- 2. Compute recursively -----
-  collected.add(skillId);
+  // ----- 2. Deduplicate concurrent requests -----
+  if (inFlight.has(skillId)) {
+    const result = await inFlight.get(skillId)!;
+    return new Set(result);
+  }
 
-  const relations = await db.query.relationship.findMany({
-    where: (r, { eq }) => eq(r.target_skill_id, skillId),
-    with: {
-      source_skill: true,
-      target_skill: true,
-    },
-  });
+  // ----- 3. Compute -----
+  const promise = (async () => {
+    const collected = new Set<number>();
+    collected.add(skillId);
 
-  for (const rel of relations) {
-    const childId = rel.source_skill_id;
-    if (!collected.has(childId)) {
-      await getAllRelatedSkills(childId, collected);
+    const relations = await db.query.relationship.findMany({
+      where: (r, { eq }) => eq(r.target_skill_id, skillId),
+      with: {
+        source_skill: true,
+        target_skill: true,
+      },
+    });
+
+    for (const rel of relations) {
+      const childId = rel.source_skill_id;
+
+      if (!collected.has(childId)) {
+        const childSet = await getAllRelatedSkills(childId);
+        childSet.forEach((id) => collected.add(id));
+      }
     }
+
+    const result = new Set(collected);
+
+    cache.set(skillId, result, {
+      ttl: getTTLUntilEOD(),
+    });
+
+    return result;
+  })();
+
+  inFlight.set(skillId, promise);
+
+  try {
+    const result = await promise;
+    return new Set(result);
+  } finally {
+    inFlight.delete(skillId);
   }
-
-  // ----- 3. Save to cache -----
-  const idsArray = Array.from(collected);
-
-  await storage.setItem(cacheKey, {
-    ids: idsArray,
-    expires: Date.now() + TTL_MS,
-  });
-
-  return collected;
 };

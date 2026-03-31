@@ -1,4 +1,4 @@
-import { getLevels } from "~/server/db/proficiency_level";
+import { getLevels } from "~~/server/db/proficiency_level";
 
 export default defineEventHandler(async (event) => {
   const params = getRouterParams(event);
