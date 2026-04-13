@@ -21,13 +21,13 @@ spec:
             - name: DATABASE_URL
               value: ${DATABASE_URL}
             - name: NUXT_PUBLIC_USER_MANAGER_API_URL
-              value: http://10.115.1.100:30097
+              value: https://employees-api.jtektrnd.net
             - name: NUXT_PUBLIC_DEVELOPER
               value: Leah Ishiguro
             - name: NUXT_PUBLIC_DEVELOPER_HOMEPAGE
-              value: http://10.115.1.14/leahishiguro
+              value: https://gitlab.jtektrnd.net/leahishiguro
             - name: NUXT_APP_REPO
-              value: http://10.115.1.14/eks/moreillon/skill_map_back
+              value: https://gitlab.jtektrnd.net/eks/moreillon/skill_map_back
             - name: NUXT_OIDC_PROVIDERS_KEYCLOAK_CLIENT_ID
               value: public
             - name: NUXT_OIDC_PROVIDERS_KEYCLOAK_AUTHORIZATION_URL
