@@ -16,7 +16,7 @@
       class="text-caption text-disabled"
       style="position: absolute; right: 16px"
     >
-      &copy; 2020-{{ new Date().getFullYear() }}
+      &copy; {{ displayYear }}
       <span class="d-none d-sm-inline-block">JTEKT Corporation</span>
       —
       <a
@@ -52,6 +52,14 @@ type DevInfo = {
 };
 
 defineProps<Props>();
+
+const developedYear = 2023;
+const currentYear = new Date().getFullYear();
+
+const displayYear =
+  developedYear === currentYear
+    ? `${developedYear}`
+    : `${developedYear}-${currentYear}`;
 </script>
 
 <style scoped lang="sass">
