@@ -14,7 +14,7 @@ export default defineNuxtConfig({
   },
   components: true,
   modules: [
-    "nuxt-oidc-auth",
+    "nuxt-auth-utils",
     (_options, nuxt) => {
       nuxt.hooks.hook("vite:extendConfig", (config) => {
         // @ts-expect-error
@@ -26,37 +26,22 @@ export default defineNuxtConfig({
       });
     },
   ],
-
-  oidc: {
-    providers: {
-      keycloak: {
-        audience: "account",
-        baseUrl: "",
-        authorizationUrl: "",
-        tokenUrl: "",
-        userInfoUrl: "",
-        logoutUrl: "",
-        clientId: "",
-        clientSecret: "",
-        redirectUri: "",
-        logoutRedirectUri: "",
-        exposeAccessToken: true,
-      },
-    },
-    session: {
-      expirationCheck: true,
-      automaticRefresh: true,
-    },
-    middleware: {
-      globalMiddlewareEnabled: true,
-      customLoginPage: false,
-    },
-  },
   css: ["vuetify/styles"],
 
   vite: {
     ssr: {
       noExternal: ["vuetify"],
+    },
+    optimizeDeps: {
+      include: [
+        "vue-i18n",
+        "d3",
+        "date-fns",
+        "date-fns/locale",
+        "vue-chartjs",
+        "chart.js",
+        "chart.js/auto",
+      ],
     },
     vue: {
       template: {
