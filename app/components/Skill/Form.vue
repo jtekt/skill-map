@@ -19,7 +19,6 @@
               <v-col>
                 <v-text-field
                   :label="$t('skill_table.name')"
-                  variant="outlined"
                   v-model="formData.name"
                   required
                   :rules="[(v) => !!v || 'Field Required']"
@@ -30,7 +29,6 @@
               <v-col>
                 <v-text-field
                   :label="$t('skill_table.logo')"
-                  variant="outlined"
                   v-model="formData.image"
                 />
               </v-col>
@@ -93,7 +91,7 @@ const props = withDefaults(
       recommended: true,
       importance: 30,
     }),
-  }
+  },
 );
 const emit = defineEmits(["save-data"]);
 const formData = ref({ ...props.initialData });
@@ -121,7 +119,7 @@ watch(
   (value, _) => {
     if (!value) formData.value.importance = 20;
     else formData.value.importance = 30;
-  }
+  },
 );
 
 const submitForm = () => {

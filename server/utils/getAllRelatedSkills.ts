@@ -12,7 +12,7 @@ const getTTLUntilEOD = () => {
 };
 
 const cache = new LRUCache<number, Set<number>>({
-  max: 500,
+  max: 200,
   ttlAutopurge: true,
 });
 

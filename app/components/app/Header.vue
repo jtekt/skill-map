@@ -25,8 +25,12 @@
 
     <v-spacer />
 
+    <v-btn
+      :icon="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
+      @click="toggleTheme"
+    />
+
     <slot name="trailing" />
-    <v-btn icon="mdi-theme-light-dark" @click="toggleTheme" />
   </v-app-bar>
 
   <v-navigation-drawer
@@ -64,6 +68,8 @@ const hasLead = computed(() => !!slots.leading);
 const isDarkBar = computed(() => (props.color ?? "").toLowerCase() === "black");
 const titleClass = computed(() => (isDarkBar.value ? "text-white" : undefined));
 const iconColor = computed(() => (isDarkBar.value ? "white" : undefined));
+
+const isDark = computed(() => theme.global.current.value.dark);
 
 const theme = useTheme();
 const drawer = ref(true);

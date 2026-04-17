@@ -28,14 +28,30 @@ export default defineNuxtPlugin((app) => {
         customLocale: true,
       },
     },
+    defaults: {
+      VSwitch: {
+        color: "primary",
+      },
+      VTextField: {
+        variant: "underlined",
+      },
+      VSelect: {
+        variant: "outlined",
+      },
+    },
     theme: {
       defaultTheme,
       themes: {
         light: {
-          colors: { primary: "#c00000" },
+          colors: {
+            primary: "#b00000",
+            background: "#f5f5f5",
+          },
         },
         dark: {
-          colors: { primary: "#c00000" },
+          colors: {
+            primary: "#e04444",
+          },
         },
       },
     },

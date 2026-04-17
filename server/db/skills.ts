@@ -3,8 +3,6 @@ import { db } from ".";
 import { skill, user_skill } from "./schema";
 import { getAllRelatedSkills } from "../utils/getAllRelatedSkills";
 
-const memoCache = new Map<number, Set<number>>();
-
 /**
  * Reset sequence for a given table (Postgres)
  * Same behavior as your Prisma version.
