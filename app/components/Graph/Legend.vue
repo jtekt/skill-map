@@ -36,7 +36,7 @@
   </div>
 </template>
 <script setup lang="ts">
-const { user } = useOidcAuth();
+const { user } = useUserSession();
 const route = useRoute();
 const props = defineProps<{
   users?: any;
@@ -56,7 +56,7 @@ const comparetOUser = computed(() => {
 
 const smOwnerLegend = computed(() => {
   return props.users &&
-    props.users[0].username != user.value?.userInfo.preferred_username
+    props.users[0].username != user.value?.preferred_username
     ? props.users[0].display_name
     : undefined;
 });

@@ -62,7 +62,7 @@
       </v-col>
       <v-col>
         <v-card max-width="344" class="mx-auto">
-          <v-card-actions v-if="loggedIn">
+          <v-card-actions v-if="loggedInUser">
             <v-spacer></v-spacer>
             <v-tooltip
               :text="
@@ -142,7 +142,7 @@
 <script lang="ts" setup>
 import { useLocale } from "vuetify";
 const config = useRuntimeConfig();
-const { user: loggedInUser, loggedIn } = useOidcAuth();
+const { user: loggedInUser } = useUserSession();
 
 const { t } = useLocale();
 
@@ -158,7 +158,7 @@ const snackbar = ref({
 const { data: skill, pending: loading } = useFetch<any>(
   () =>
     loggedInUser.value
-      ? `/api/users/${loggedInUser.value.userInfo.preferred_username}/skills/${route.params.id}`
+      ? `/api/users/${loggedInUser.value.preferred_username}/skills/${route.params.id}`
       : `/api/skills/${route.params.id}`,
   {
     immediate: true,
@@ -241,7 +241,7 @@ const addToUserSkills = async () => {
     method: "POST",
     body: {
       skill_id: skill.value.id,
-      user_id: loggedInUser.value?.userInfo.preferred_username,
+      user_id: loggedInUser.value?.preferred_username,
     },
   };
 

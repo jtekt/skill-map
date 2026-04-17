@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-const { user } = useOidcAuth();
+const { session } = useUserSession();
 const route = useRoute();
 const config = useRuntimeConfig();
 const queryParams = computed(() => ({ ...route.query }));
@@ -45,7 +45,7 @@ const { data: users } = useFetch(
       username: user_ids,
     },
     headers: {
-      Authorization: `Bearer ${user.value?.accessToken}`,
+      Authorization: `Bearer ${session.value?.tokens?.access_token || ""}`,
     },
     watch: [user_ids],
     transform: (response: any) => response.users,

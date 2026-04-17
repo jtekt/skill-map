@@ -140,7 +140,7 @@ import { useLocale } from "vuetify";
 const config = useRuntimeConfig();
 const route = useRoute();
 const { t } = useLocale();
-const { user: loggedInUser } = useOidcAuth();
+const { user: loggedInUser, session } = useUserSession();
 
 const search = ref("");
 const pagination = ref({ page: 1, itemsPerPage: 10 });
@@ -154,7 +154,7 @@ const snackbar = ref({
 const allowChanges = computed(
   () =>
     loggedInUser.value &&
-    loggedInUser.value.userInfo.preferred_username === route.params.user_id,
+    loggedInUser.value.preferred_username === route.params.user_id,
 );
 
 const userId = computed(() => route.params.user_id);
@@ -181,13 +181,14 @@ const { data: user } = useFetch<Record<string, any>>(
   () => `${config.public.userManagerApiUrl}/v3/employees/${userId.value}`,
   {
     headers: {
-      Authorization: `Bearer ${loggedInUser.value?.accessToken}`,
+      Authorization: `Bearer ${session.value?.tokens?.access_token || ""}`,
     },
     immediate: true,
     watch: [userId],
   },
 );
-
+console.log("USER", user.value);
+console.log("session.value", session.value);
 const removeFromSkillList = async (item) => {
   if (!confirm(t("confirmation.remove_from_user_skill"))) return;
 
@@ -218,10 +219,7 @@ const updatedProficiency = (index: number, data: any) => {
 const pageTitle = computed(() => {
   if (!user.value && !loggedInUser.value) return t("user");
 
-  if (
-    user.value?.preferred_username ===
-    loggedInUser.value?.userInfo.preferred_username
-  ) {
+  if (user.value?.username === loggedInUser.value?.preferred_username) {
     return t("my_skills");
   }
 

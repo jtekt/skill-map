@@ -11,7 +11,7 @@
             {{ $t("all_skills") }}
           </v-btn>
 
-          <v-btn v-if="user" :to="`/users/${user.userInfo.preferred_username}`">
+          <v-btn v-if="user" :to="`/users/${user.preferred_username}`">
             {{ $t("my_skills") }}
           </v-btn>
 
@@ -22,7 +22,7 @@
           </v-btn>
           -->
 
-          <v-btn icon="mdi-logout" @click="logout(currentProvider)" />
+          <v-btn icon="mdi-logout" @click="handleLogout()" />
         </template>
       </AppHeader>
 
@@ -36,8 +36,9 @@
 </template>
 
 <script setup lang="ts">
-const { user, logout, currentProvider } = useOidcAuth();
+const { user, clear } = useUserSession();
 const config = useRuntimeConfig();
+const router = useRouter();
 
 const title = "Skill Map";
 
@@ -49,5 +50,10 @@ const appInfo = {
 const devInfo = {
   name: config.public.developer,
   href: config.public.developerHomepage,
+};
+
+const handleLogout = async () => {
+  await clear();
+  router.push("/auth");
 };
 </script>

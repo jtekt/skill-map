@@ -1,12 +1,12 @@
 export default (url: string, options: any = {}) => {
-  const { user } = useOidcAuth();
+  const { session } = useUserSession();
 
   const headers: Record<string, string> = {
     ...(options.headers || {}),
   };
 
-  if (user.value?.accessToken) {
-    headers.Authorization = `Bearer ${user.value.accessToken}`;
+  if (session.value?.tokens?.access_token) {
+    headers.Authorization = `Bearer ${session.value?.tokens?.access_token || ""}`;
   }
 
   return $fetch(url, {

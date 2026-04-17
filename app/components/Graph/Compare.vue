@@ -41,7 +41,7 @@
 <script lang="ts" setup>
 const route = useRoute();
 const router = useRouter();
-const { user } = useOidcAuth();
+const { user } = useUserSession();
 
 const menu = ref(false);
 withDefaults(
@@ -68,14 +68,10 @@ const resetDisable = computed(() => compareTo.value !== "all");
 
 onMounted(() => {
   const { user_id } = route.params;
-  if (
-    user.value &&
-    user_id &&
-    user.value.userInfo.preferred_username !== user_id
-  ) {
+  if (user.value && user_id && user.value?.preferred_username !== user_id) {
     items.value.push({
       name: "Your skills",
-      id: user.value.userInfo.preferred_username,
+      id: user.value?.preferred_username || "",
     });
   }
   const { compareTo: ct } = route.query;
@@ -88,8 +84,7 @@ const doCompare = () => {
       name: route.name,
     });
   else {
-    const user_id =
-      route.params.user_id ?? user.value?.userInfo.preferred_username;
+    const user_id = route.params.user_id ?? user.value?.preferred_username;
     router.push({
       path: `/users/${user_id}`,
       query: { compareTo: compareTo.value },

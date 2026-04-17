@@ -35,22 +35,12 @@ spec:
               value: https://gitlab.jtektrnd.net/leahishiguro
             - name: NUXT_APP_REPO
               value: https://gitlab.jtektrnd.net/eks/moreillon/skill_map_back
-            - name: NUXT_OIDC_PROVIDERS_KEYCLOAK_CLIENT_ID
+            - name: NUXT_OAUTH_OIDC_OPENID_CONFIG
+              value: https://keycloak.jtektrnd.net/realms/jtekt/.well-known/openid-configuration
+            - name: NUXT_OAUTH_OIDC_CLIENT_ID
               value: public
-            - name: NUXT_OIDC_PROVIDERS_KEYCLOAK_AUTHORIZATION_URL
-              value: https://keycloak.jtektrnd.net/realms/jtekt/protocol/openid-connect/auth
-            - name: NUXT_OIDC_PROVIDERS_KEYCLOAK_TOKEN_URL
-              value: https://keycloak.jtektrnd.net/realms/jtekt/protocol/openid-connect/token
-            - name: NUXT_OIDC_PROVIDERS_KEYCLOAK_USER_INFO_URL
-              value: https://keycloak.jtektrnd.net/realms/jtekt/protocol/openid-connect/userinfo
-            - name: NUXT_OIDC_PROVIDERS_KEYCLOAK_LOGOUT_URL
-              value: https://keycloak.jtektrnd.net/realms/jtekt/protocol/openid-connect/logout
-            - name: NUXT_OIDC_PROVIDERS_KEYCLOAK_BASE_URL
-              value: https://keycloak.jtektrnd.net/realms/jtekt
-            - name: NUXT_OIDC_PROVIDERS_KEYCLOAK_REDIRECT_URI
-              value: https://skill-map.jtektrnd.net/auth/keycloak/callback
-            - name: NUXT_OIDC_PROVIDERS_KEYCLOAK_LOGOUT_REDIRECT_URI
-              value: https://skill-map.jtektrnd.net
+            - name: NUXT_SESSION_PASSWORD
+              value: ${NUXT_SESSION_PASSWORD}
       imagePullSecrets:
         - name: ${K8S_ECR_SECRET_NAME}
 ---

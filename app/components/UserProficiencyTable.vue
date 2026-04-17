@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import { useLocale } from "vuetify";
-const { user } = useOidcAuth();
+const { user } = useUserSession();
 const config = useRuntimeConfig();
 const route = useRoute();
 const { t } = useLocale();
@@ -90,7 +90,7 @@ const levelColor = (level: number) => {
 const getUserSkills = async ({ page, itemsPerPage }) => {
   loading.value = true;
   await $fetch(
-    `/api/skills/${route.params.id}/userSkills?page=${page}&take=${itemsPerPage}&notUser=${user.value?.userInfo.preferred_username}`,
+    `/api/skills/${route.params.id}/userSkills?page=${page}&take=${itemsPerPage}&notUser=${user.value?.preferred_username}`,
   )
     .then((response) => {
       items.value = response.items;
