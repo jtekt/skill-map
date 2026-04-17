@@ -15,6 +15,13 @@ spec:
       containers:
         - name: ${APPLICATION_NAME}
           image: ${CONTAINER_IMAGE_TAGGED}
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "10m"
+            limits:
+              memory: "256Mi"
+              cpu: "600m"
           ports:
             - containerPort: 80
           env:

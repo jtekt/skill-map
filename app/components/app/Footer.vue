@@ -1,44 +1,42 @@
 <template>
-  <v-footer app height="40">
-    <div class="text-caption text-disabled">
-      Maintained by —
-      <a
-        v-if="devInfo"
-        class="text-decoration-none on-surface"
-        :href="devInfo.href"
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        {{ devInfo.name }}
-      </a>
-    </div>
+  <v-footer app height="18" class="pa-0">
     <div
-      class="text-caption text-disabled"
-      style="position: absolute; right: 16px"
+      class="footer-mini px-2 d-flex align-center justify-space-between w-100"
     >
-      &copy; {{ displayYear }}
-      <span class="d-none d-sm-inline-block">JTEKT Corporation</span>
-      —
-      <a
-        v-if="appInfo"
-        class="text-decoration-none on-surface"
-        :href="appInfo.href"
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        {{ appInfo.title }}
-      </a>
-      | v{{ version }}
+      <div v-if="hasDevInfo">
+        Maintained by
+        <a
+          class="link"
+          :href="devInfo!.href"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ devInfo!.name }}
+        </a>
+      </div>
+
+      <div>
+        © {{ displayYear }}
+        <span class="d-none d-sm-inline">JTEKT</span>
+        ·
+        <a
+          v-if="appInfo"
+          class="link"
+          :href="appInfo.href"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ appInfo.title }}
+        </a>
+        · v{{ version }}
+      </div>
     </div>
   </v-footer>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { version } from "../../../package.json";
-type Props = {
-  appInfo?: AppInformation;
-  devInfo?: DevInfo;
-};
 
 type AppInformation = {
   title: string;
@@ -51,23 +49,49 @@ type DevInfo = {
   icon?: string;
 };
 
-defineProps<Props>();
+const props = defineProps<{
+  appInfo?: AppInformation;
+  devInfo?: DevInfo;
+}>();
 
-const developedYear = 2023;
+const developedYear = 2021;
+
 const currentYear = new Date().getFullYear();
 
-const displayYear =
+const displayYear = computed(() =>
   developedYear === currentYear
     ? `${developedYear}`
-    : `${developedYear}-${currentYear}`;
+    : `${developedYear}-${currentYear}`,
+);
+
+const hasDevInfo = computed(() => !!props.devInfo?.name);
 </script>
 
-<style scoped lang="sass">
-.social-link :deep(.v-icon)
-  color: rgba(var(--v-theme-on-background), var(--v-disabled-opacity))
-  text-decoration: none
-  transition: .2s ease-in-out
+<style scoped>
+.footer-mini {
+  font-size: 11px;
+  line-height: 1.2;
+  opacity: 0.65;
+}
 
-  &:hover
-    color: rgba(25, 118, 210, 1)
+.link {
+  text-decoration: none;
+  color: inherit;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.link:hover {
+  opacity: 1;
+}
+
+.social-link :deep(.v-icon) {
+  color: rgba(var(--v-theme-on-background), var(--v-disabled-opacity));
+  text-decoration: none;
+  transition: 0.2s ease-in-out;
+}
+
+.social-link :deep(.v-icon):hover {
+  color: rgb(var(--v-theme-primary));
+}
 </style>
