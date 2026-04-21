@@ -13,7 +13,6 @@
     >
       <div class="lead-content">
         <slot name="leading" />
-        <v-divider vertical thickness="2" />
       </div>
     </div>
 
@@ -98,6 +97,7 @@ function toggleTheme() {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-left: 22px;
 }
 
 .lead-content img,

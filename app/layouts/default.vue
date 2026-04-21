@@ -3,7 +3,7 @@
     <v-app>
       <AppHeader :title="title">
         <template #leading>
-          <img src="/jtekt_logo_negative.jpg" alt="Logo" />
+          <v-icon>mdi-graph-outline</v-icon>
         </template>
 
         <template #trailing>
