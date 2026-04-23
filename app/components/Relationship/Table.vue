@@ -69,6 +69,7 @@
 </template>
 
 <script setup lang="ts">
+const { confirm } = useConfirm();
 const { showToast } = useToast();
 import { useLocale } from "vuetify";
 const props = defineProps<{
@@ -116,7 +117,12 @@ const loadNextPage = async ({ page, itemsPerPage }) => {
 };
 
 const deleteRelationship = async (item: any) => {
-  if (!confirm("Are you sure you want to remove this item?")) return;
+  const ok = await confirm({
+    text: t("confirmation.remove_relationship"),
+    color: "error",
+  });
+
+  if (!ok) return;
   if (!item.relationId) return console.error("Missing relationship ID");
   loading.value = true;
   $fetch(`/api/relationships/${item.relationId}`, {
@@ -127,10 +133,7 @@ const deleteRelationship = async (item: any) => {
     })
     .catch((error) => {
       console.log(error);
-      showToast(
-        error.message || "An error occurred while deleting the relationship.",
-        "error",
-      );
+      showToast(error.message || t("error.deleting_relationship"), "error");
     })
     .finally(() => {
       loading.value = false;

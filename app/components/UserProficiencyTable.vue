@@ -27,19 +27,21 @@
               <v-list-item
                 :to="`/users/${item.user_id}/skills`"
                 prepend-icon="mdi-table"
-                title="View Skill List"
+                :title="$t('user_proficiency.view_skill_list')"
               />
               <v-list-item
                 :to="`/users/${item.user_id}`"
                 prepend-icon="mdi-graph"
-                title="View Skill Graph"
+                :title="$t('user_proficiency.view_skill_graph')"
               />
             </v-list>
           </v-menu>
         </template>
 
         <template v-slot:item.proficiency_level="{ item }">
-          <div v-if="!item.proficiency_levels?.length">No Level added yet</div>
+          <div v-if="!item.proficiency_levels?.length">
+            {{ $t("proficiency.no_levels") }}
+          </div>
           <div v-else class="px-10">
             <v-progress-linear
               :color="levelColor(item.proficiency_levels[0].level)"
@@ -55,8 +57,9 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthIdentifier } from "~/composables/useAuthIdentifier";
+import { useLocale } from "vuetify";
 
+const { t } = useLocale();
 const { user_id } = useAuthIdentifier();
 const route = useRoute();
 const { fetchUsers } = useUserLookup();
@@ -70,10 +73,10 @@ const loading = ref(false);
 const items = ref<any[]>(props.propItems);
 const count = ref(props.propCount ?? 0);
 
-const headers = ref<any[]>([
-  { title: "User", value: "display_name", align: "end", width: "30%" },
+const headers = computed(() => [
+  { title: t("user"), value: "display_name", align: "end", width: "30%" },
   {
-    title: "Proficiency",
+    title: t("proficiency_level"),
     value: "proficiency_level",
     align: "center",
     width: "70%",

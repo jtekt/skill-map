@@ -14,13 +14,7 @@
           {{ $t("my_skills") }}
         </v-btn>
 
-        <!-- Localization temporarily disabled -->
-        <!--
-          <v-btn prepend-icon="mdi-translate" @click="changeLocale">
-            {{ current === "en" ? "EN" : "JA" }}
-          </v-btn>
-          -->
-
+        <LocaleSelector />
         <v-btn icon="mdi-logout" @click="handleLogout()" />
       </template>
     </AppHeader>
@@ -31,6 +25,7 @@
 
     <client-only>
       <v-snackbar-queue v-model="queue" />
+      <AppConfirmDialog />
     </client-only>
     <AppFooter :app-info="appInfo" :dev-info="devInfo" />
   </v-app>

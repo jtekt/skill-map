@@ -1,7 +1,7 @@
 <template>
-  <v-card>
+  <v-card :elevation="elevation">
     <v-card-title class="d-flex align-center">
-      Proficieny Level Table
+      {{ $t("proficiency.table_title") }}
 
       <v-spacer></v-spacer>
 
@@ -16,7 +16,7 @@
       <ProficiencyForm
         v-if="allowChanges"
         :dialog-data="{
-          title: 'Add new level',
+          title: $t('proficiency.add_new_level'),
           icon: 'mdi-playlist-plus',
         }"
         @save-data="saveNewData"
@@ -53,7 +53,7 @@
             <div class="d-flex">
               <ProficiencyForm
                 :dialog-data="{
-                  title: 'Udpate Level',
+                  title: $t('proficiency.update_level'),
                   icon: 'mdi-lead-pencil',
                   color: 'warning',
                   variant: 'text',
@@ -86,6 +86,7 @@ import { ja, enUS } from "date-fns/locale";
 
 const locales = { ja, enUS };
 
+const { confirm } = useConfirm();
 const { t, current } = useLocale();
 const props = defineProps<{
   userSkillId: number;
@@ -118,10 +119,10 @@ watch(
 const headers = computed(() => {
   const defaultHeaders = [
     { title: t("proficiency_level"), value: "proficiency_level" },
-    { title: "Added at", value: "createdAt" },
+    { title: t("proficiency.added_at"), value: "createdAt" },
   ];
   if (props.allowChanges)
-    defaultHeaders.push({ title: "Actions", value: "actions" });
+    defaultHeaders.push({ title: t("common.actions"), value: "actions" });
   return defaultHeaders;
 });
 
@@ -138,10 +139,7 @@ const saveNewData = async (data: any) => {
       emit("updated-proficiency", response);
     })
     .catch((error) => {
-      showToast(
-        error.message || "An error occurred while saving the data.",
-        "error",
-      );
+      showToast(error.message || t("error.saving_data"), "error");
       console.error(error);
     });
 };
@@ -162,17 +160,18 @@ const updateData = async (data: any, id: number) => {
       }
     })
     .catch((error) => {
-      showToast(
-        error.message || "An error occurred while updating the data.",
-        "error",
-      );
+      showToast(error.message || t("error.updating_data"), "error");
       console.error(error);
     });
 };
 
 const deleteData = async (id: number) => {
-  if (!confirm("Are you sure you want to remove this level from your list?"))
-    return;
+  const ok = await confirm({
+    text: t("confirmation.remove_proficiency_level"),
+    color: "error",
+  });
+
+  if (!ok) return;
   $fetch(`/api/proficiency/${id}`, {
     method: "DELETE",
   })
@@ -183,10 +182,7 @@ const deleteData = async (id: number) => {
       emit("updated-proficiency", items.value[0] ?? null);
     })
     .catch((error) => {
-      showToast(
-        error.message || "An error occurred while updating the data.",
-        "error",
-      );
+      showToast(error.message || t("error.updating_data"), "error");
       console.error(error);
     });
 };

@@ -4,7 +4,7 @@
       v-if="hasNav"
       icon="mdi-menu"
       :color="iconColor"
-      aria-label="Open navigation"
+      :aria-label="$t('common.open_navigation')"
       @click="toggleDrawer"
     />
     <div

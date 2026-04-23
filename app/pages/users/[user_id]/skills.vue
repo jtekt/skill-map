@@ -7,7 +7,7 @@
         <div class="pe-4">
           <v-row justify="end">
             <v-col>
-              <v-tooltip text="Display as Graph" location="top">
+              <v-tooltip :text="$t('display_as_graph')" location="top">
                 <template v-slot:activator="{ props }">
                   <v-btn
                     :to="path"
@@ -20,7 +20,7 @@
               </v-tooltip>
             </v-col>
             <v-col>
-              <v-tooltip text="Compare Skills" location="top">
+              <v-tooltip :text="$t('graph.compare_skills')" location="top">
                 <template v-slot:activator="{ props }">
                   <GraphCompare
                     key="1"
@@ -44,7 +44,7 @@
           single-line
           variant="solo-filled"
           density="compact"
-          label="Search"
+          :label="$t('search')"
         />
       </v-card-title>
       <v-divider />
@@ -92,7 +92,7 @@
                   <div
                     v-if="item.user_skill[0].proficiency_levels.length === 0"
                   >
-                    No Levels added yet
+                    {{ $t("proficiency.no_levels") }}
                   </div>
                   <div v-else>
                     <v-progress-linear
@@ -136,6 +136,7 @@
 import { useLocale } from "vuetify";
 import { useAuthIdentifier } from "~/composables/useAuthIdentifier";
 
+const { confirm } = useConfirm();
 const route = useRoute();
 const { t } = useLocale();
 const { showToast } = useToast();
@@ -194,8 +195,12 @@ const pageTitle = computed(() => {
 });
 
 const removeFromSkillList = async (item) => {
-  if (!confirm(t("confirmation.remove_from_user_skill"))) return;
+  const ok = await confirm({
+    text: t("confirmation.remove_from_user_skill"),
+    color: "error",
+  });
 
+  if (!ok) return;
   try {
     await $fetch(`/api/userSkills/${item.user_skill[0].id}`, {
       method: "DELETE",
@@ -204,10 +209,7 @@ const removeFromSkillList = async (item) => {
     showToast(t("success_msg.removed_from_my_list"), "success");
     refreshSkills();
   } catch (error: any) {
-    showToast(
-      error.message || "An error occurred while removing the skill.",
-      "error",
-    );
+    showToast(error.message || t("error.removing_skill"), "error");
   }
 };
 

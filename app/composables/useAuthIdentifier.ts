@@ -12,7 +12,6 @@ export const useAuthIdentifier = () => {
 
     const key = identifierKey.value;
 
-    console.log("identifierKey", identifierKey.value);
     // dynamic field access
     const value = u[key as keyof typeof u];
 

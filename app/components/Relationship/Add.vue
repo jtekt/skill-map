@@ -27,7 +27,9 @@
   </v-dialog>
 </template>
 <script setup lang="ts">
+import { useLocale } from "vuetify";
 const { showToast } = useToast();
+const { t } = useLocale();
 const show = ref(false);
 const emit = defineEmits(["relationshipAdded"]);
 const props = defineProps<{
@@ -39,9 +41,9 @@ const props = defineProps<{
 const addRelationship = async (item: any) => {
   const { childId, parentId } = props;
   if (!childId && !parentId)
-    return showToast("Missing childId or parentId", "error");
+    return showToast(t("error.missing_relationship_id"), "error");
   if (childId && parentId)
-    return showToast("Cannot have both childId and parentId", "error");
+    return showToast(t("error.conflicting_relationship_id"), "error");
   let body: any;
   if (childId) body = { target_skill_id: item.id, source_skill_id: childId };
   else if (parentId)

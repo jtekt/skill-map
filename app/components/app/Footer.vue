@@ -4,7 +4,7 @@
       class="footer-mini px-2 d-flex align-center justify-space-between w-100"
     >
       <div v-if="hasDevInfo">
-        Maintained by
+        {{ $t('footer.maintained_by') }}
         <a
           class="link"
           :href="devInfo!.href"

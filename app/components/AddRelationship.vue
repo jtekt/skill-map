@@ -30,7 +30,6 @@
   </v-dialog>
 </template>
 <script setup lang="ts">
-const { showToast } = useToast();
 const show = ref(false);
 const emit = defineEmits(["relationshipAdded"]);
 const props = defineProps<{
@@ -49,10 +48,9 @@ const { data } = useFetch("/api/skills", {
 
 async function addRelationship(item: any) {
   const { childId, parentId } = props;
-  if (!childId && !parentId)
-    return showToast("Missing childId or parentId", "error");
+  if (!childId && !parentId) return alert("Missing childId or parentId");
   if (childId && parentId)
-    showToast("Cannot have both childId and parentId", "error");
+    return alert("Cannot have both childId and parentId");
   let body: any;
   if (childId) body = { target_skill_id: item.id, source_skill_id: childId };
   else if (parentId)
@@ -68,10 +66,9 @@ async function addRelationship(item: any) {
       show.value = false;
     })
     .catch((error) => {
-      showToast(
+      alert(
         error.data?.message ||
           "An error occurred while adding the relationship.",
-        "error",
       );
     });
 }

@@ -27,11 +27,12 @@ WORKDIR /app
 # Only `.output` folder is needed from the build stage
 # IMPORTANT: KEEP .output FOLDER STRUCTURE INTACT — do not flatten
 COPY --from=build /app/.output ./.output
+# COPY --from=build /app/migrate.sh ./migrate.sh
 
 ENV NODE_OPTIONS="--max-old-space-size=180"
 
 # Ensure migrate script executable
-RUN chmod +x ./migrate.sh
+# RUN chmod +x ./migrate.sh
 
 # Change the port and host
 ENV NODE_ENV=production
