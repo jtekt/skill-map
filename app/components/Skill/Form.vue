@@ -3,7 +3,12 @@
     <v-dialog v-model="show" max-width="500" persistent>
       <template v-slot:activator="{ props: activatorProps }">
         <div v-bind="activatorProps">
-          <v-btn :icon="dialogData.icon" :color="dialogData.color"> </v-btn>
+          <v-btn
+            :icon="dialogData.icon"
+            :color="dialogData.color"
+            variant="text"
+          >
+          </v-btn>
         </div>
       </template>
 
@@ -99,20 +104,25 @@ const form = ref(false);
 const identical = ref(true);
 const show = ref(false);
 
-watch(formData.value, () => {
-  if (!props.initialData || !form.value) {
-    identical.value = false;
-    return;
-  }
-  if (
-    JSON.stringify(props.initialData).toLocaleLowerCase() ===
-    JSON.stringify(formData.value).toLocaleLowerCase()
-  ) {
-    identical.value = true;
-  } else {
-    identical.value = false;
-  }
-});
+watch(
+  formData,
+  () => {
+    if (!props.initialData || !form.value) {
+      identical.value = false;
+      return;
+    }
+
+    if (
+      JSON.stringify(props.initialData).toLowerCase() ===
+      JSON.stringify(formData.value).toLowerCase()
+    ) {
+      identical.value = true;
+    } else {
+      identical.value = false;
+    }
+  },
+  { deep: true },
+);
 
 watch(
   () => formData.value.recommended,
@@ -125,6 +135,7 @@ watch(
 const submitForm = () => {
   emit("save-data", formData.value);
   show.value = false;
+  reset();
 };
 
 const reset = () => {

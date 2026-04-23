@@ -13,6 +13,7 @@ const { data, pending, refresh } = useFetch("/api/skills/graph", {
   query: queryParams,
   watch: [queryParams],
   immediate: true,
+  deep: true,
 });
 
 const skills = computed(() => data.value?.items ?? []);

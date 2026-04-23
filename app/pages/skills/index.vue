@@ -56,24 +56,11 @@
       <SkillTable />
     </v-col>
   </v-row>
-  <v-snackbar v-model="snackbar.display" :color="snackbar.color">
-    {{ snackbar.text }}
-
-    <template v-slot:actions>
-      <v-btn @click="snackbar.display = false" icon="mdi-close" />
-    </template>
-  </v-snackbar>
 </template>
 <script lang="ts" setup>
-import { ref } from "vue";
+const { showToast } = useToast();
 import { useLocale } from "vuetify";
 const { t } = useLocale();
-
-const snackbar = ref({
-  display: false,
-  text: "",
-  color: "primary",
-});
 
 const doAdd = async (data: any) => {
   $fetch("/api/skills", {
@@ -82,19 +69,13 @@ const doAdd = async (data: any) => {
     body: JSON.stringify(data),
   })
     .then((response) => {
-      snackbar.value = {
-        text: t("success_msg.add_skill", response.name),
-        color: "success",
-        display: true,
-      };
+      showToast(t("success_msg.add_skill", response.name), "success");
     })
     .catch((error) => {
-      snackbar.value = { text: error, color: "error", display: true };
-    })
-    .finally(() => {
-      setTimeout(() => {
-        snackbar.value.display = false;
-      }, 5000);
+      showToast(
+        error.message || "An error occurred while adding the skill.",
+        "error",
+      );
     });
 };
 </script>

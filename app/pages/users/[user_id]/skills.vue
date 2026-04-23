@@ -1,232 +1,224 @@
 <template>
-  <v-card>
-    <v-card-title class="d-flex align-center pe-2">
-      <v-icon icon="mdi-lightbulb-on-20" /> &nbsp; {{ pageTitle }}
-      <v-spacer></v-spacer>
-      <div class="pe-4">
-        <v-row justify="end">
-          <v-col>
-            <v-tooltip text="Display as Graph" location="top">
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  :to="path"
-                  size="x-small"
-                  icon="mdi-graph"
-                  color="primary"
-                  v-bind="props"
-                />
-              </template>
-            </v-tooltip>
-          </v-col>
-          <v-col>
-            <v-tooltip text="Compare Skills" location="top">
-              <template v-slot:activator="{ props }">
-                <GraphCompare
-                  key="1"
-                  v-bind="props"
-                  :button-props="{
-                    size: 'x-small',
-                    icon: 'mdi-chart-scatter-plot-hexbin',
-                    color: 'primary',
-                  }"
-                />
-              </template>
-            </v-tooltip>
-          </v-col>
-        </v-row>
-      </div>
-      <v-text-field
-        prepend-inner-icon="mdi-magnify"
-        v-model="search"
-        flat
-        hide-details
-        single-line
-        variant="solo-filled"
-        density="compact"
-        label="Search"
-      />
-    </v-card-title>
-    <v-divider />
-    <v-card-text>
-      <v-data-table-server
-        :headers="headers"
-        :items="skills"
-        item-key="name"
-        :search="search"
-        :loading="loading"
-        hide-default-header
-        :items-length="count"
-        @update:options="updateOptions"
-      >
-        <template v-slot:loading>
-          <v-skeleton-loader type="table-tbody"></v-skeleton-loader>
-        </template>
-        <template v-slot:item.name="{ item }">
-          <v-hover>
-            <template v-slot:default="{ isHovering, props }">
-              <span
-                v-bind="props"
-                @click="navigateTo(`/skills/${item.id}`)"
-                style="cursor: pointer"
-                :class="isHovering ? 'text-primary' : undefined"
-              >
-                {{ item.name }}
-              </span>
-            </template>
-          </v-hover>
-        </template>
-        <template v-slot:item.image="{ item }">
-          <v-img
-            width="3em"
-            height="3em"
-            :src="item.image || '/icons/school.png'"
-            @click="navigateTo(`/skills/${item.id}`)"
-            style="cursor: pointer"
-          />
-        </template>
-        <template v-slot:item.proficiency_level="{ item, index }">
-          <v-row no-gutters>
-            <v-col cols="10">
-              <div class="pt-4">
-                <div v-if="item.user_skill[0].proficiency_levels.length === 0">
-                  No Levels added yet
-                </div>
-                <div v-else>
-                  <v-progress-linear
-                    :color="
-                      levelColor(item.user_skill[0].proficiency_levels[0].level)
-                    "
-                    :model-value="
-                      item.user_skill[0].proficiency_levels[0].level
-                    "
-                    striped
-                    height="10"
+  <v-container fluid>
+    <v-card>
+      <v-card-title class="d-flex align-center pe-2">
+        <v-icon icon="mdi-lightbulb-on-20" /> &nbsp; {{ pageTitle }}
+        <v-spacer></v-spacer>
+        <div class="pe-4">
+          <v-row justify="end">
+            <v-col>
+              <v-tooltip text="Display as Graph" location="top">
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    :to="path"
+                    size="x-small"
+                    icon="mdi-graph"
+                    color="primary"
+                    v-bind="props"
                   />
-                </div>
-              </div>
+                </template>
+              </v-tooltip>
             </v-col>
-            <v-col cols="2">
-              <ProficiencyDialog
-                :id="item.user_skill[0].id"
-                @updated-proficiency="updatedProficiency(index, $event)"
-                :allow-changes="allowChanges ?? false"
-              />
+            <v-col>
+              <v-tooltip text="Compare Skills" location="top">
+                <template v-slot:activator="{ props }">
+                  <GraphCompare
+                    key="1"
+                    v-bind="props"
+                    :button-props="{
+                      size: 'x-small',
+                      icon: 'mdi-chart-scatter-plot-hexbin',
+                      color: 'primary',
+                    }"
+                  />
+                </template>
+              </v-tooltip>
             </v-col>
           </v-row>
-        </template>
-        <template v-slot:item.remove="{ item }">
-          <v-btn
-            icon="mdi-close"
-            @click="removeFromSkillList(item)"
-            variant="flat"
-          />
-        </template>
-      </v-data-table-server>
-    </v-card-text>
-
-    <v-snackbar v-model="snackbar.display" :color="snackbar.color">
-      {{ snackbar.text }}
-
-      <template v-slot:actions>
-        <v-btn @click="snackbar.display = false" icon="mdi-close" />
-      </template>
-    </v-snackbar>
-  </v-card>
+        </div>
+        <v-text-field
+          prepend-inner-icon="mdi-magnify"
+          v-model="search"
+          flat
+          hide-details
+          single-line
+          variant="solo-filled"
+          density="compact"
+          label="Search"
+        />
+      </v-card-title>
+      <v-divider />
+      <v-card-text>
+        <v-data-table-server
+          :headers="headers"
+          :items="skills"
+          item-key="name"
+          :search="search"
+          :loading="loading"
+          hide-default-header
+          :items-length="count"
+          @update:options="updateOptions"
+        >
+          <template v-slot:loading>
+            <v-skeleton-loader type="table-tbody"></v-skeleton-loader>
+          </template>
+          <template v-slot:item.name="{ item }">
+            <v-hover>
+              <template v-slot:default="{ isHovering, props }">
+                <span
+                  v-bind="props"
+                  @click="navigateTo(`/skills/${item.id}`)"
+                  style="cursor: pointer"
+                  :class="isHovering ? 'text-primary' : undefined"
+                >
+                  {{ item.name }}
+                </span>
+              </template>
+            </v-hover>
+          </template>
+          <template v-slot:item.image="{ item }">
+            <v-img
+              width="3em"
+              height="3em"
+              :src="item.image || '/icons/school.png'"
+              @click="navigateTo(`/skills/${item.id}`)"
+              style="cursor: pointer"
+            />
+          </template>
+          <template v-slot:item.proficiency_level="{ item, index }">
+            <v-row no-gutters>
+              <v-col cols="10">
+                <div class="pt-4">
+                  <div
+                    v-if="item.user_skill[0].proficiency_levels.length === 0"
+                  >
+                    No Levels added yet
+                  </div>
+                  <div v-else>
+                    <v-progress-linear
+                      :color="
+                        levelColor(
+                          item.user_skill[0].proficiency_levels[0].level,
+                        )
+                      "
+                      :model-value="
+                        item.user_skill[0].proficiency_levels[0].level
+                      "
+                      striped
+                      height="10"
+                    />
+                  </div>
+                </div>
+              </v-col>
+              <v-col cols="2">
+                <ProficiencyDialog
+                  :id="item.user_skill[0].id"
+                  @updated-proficiency="updatedProficiency(index, $event)"
+                  :allow-changes="allowChanges ?? false"
+                />
+              </v-col>
+            </v-row>
+          </template>
+          <template v-slot:item.remove="{ item }">
+            <v-btn
+              icon="mdi-close"
+              @click="removeFromSkillList(item)"
+              variant="flat"
+            />
+          </template>
+        </v-data-table-server>
+      </v-card-text>
+    </v-card>
+  </v-container>
 </template>
 
 <script setup lang="ts">
 import { useLocale } from "vuetify";
+import { useAuthIdentifier } from "~/composables/useAuthIdentifier";
 
-const config = useRuntimeConfig();
 const route = useRoute();
 const { t } = useLocale();
-const { user: loggedInUser, session } = useUserSession();
+const { showToast } = useToast();
+const { user_id } = useAuthIdentifier();
 
 const search = ref("");
 const pagination = ref({ page: 1, itemsPerPage: 10 });
-
-const snackbar = ref({
-  display: false,
-  text: "",
-  color: "primary",
-});
+const query = computed(() => ({
+  page: pagination.value.page,
+  take: pagination.value.itemsPerPage,
+  skills: search.value,
+}));
 
 const allowChanges = computed(
-  () =>
-    loggedInUser.value &&
-    loggedInUser.value.preferred_username === route.params.user_id,
+  () => user_id.value && user_id.value === route.params.user_id,
 );
 
-const userId = computed(() => route.params.user_id);
+const skills = computed(() => skillsData.value?.items ?? []);
+const count = computed(() => skillsData.value?.count ?? 0);
+
+const rawUser = ref<{ user_id: string; display_name: string } | null>(null);
+const userId = computed(() => String(route.params.user_id));
 const path = computed(() => `/users/${userId.value}`);
+
+const { fetchUsers } = useUserLookup();
+
 const {
   data: skillsData,
   pending: loading,
   refresh: refreshSkills,
 } = useFetch(() => `/api/users/${userId.value}/skills`, {
-  query: () => ({
-    page: pagination.value.page,
-    take: pagination.value.itemsPerPage,
-    skills: search.value,
-  }),
+  query,
   watch: [pagination, search, userId],
   immediate: true,
   deep: true,
 });
 
-const skills = computed(() => skillsData.value?.items ?? []);
-const count = computed(() => skillsData.value?.count ?? 0);
-
-const { data: user } = useFetch<Record<string, any>>(
-  () => `${config.public.userManagerApiUrl}/v3/employees/${userId.value}`,
-  {
-    headers: {
-      Authorization: `Bearer ${session.value?.tokens?.access_token || ""}`,
-    },
-    immediate: true,
-    watch: [userId],
-  },
-);
-console.log("USER", user.value);
-console.log("session.value", session.value);
-const removeFromSkillList = async (item) => {
-  if (!confirm(t("confirmation.remove_from_user_skill"))) return;
-
-  await $fetch(`/api/userSkills/${item.user_skill[0].id}`, {
-    method: "DELETE",
-  })
-    .then(() => {
-      snackbar.value = {
-        text: t("success_msg.removed_from_my_list"),
-        color: "success",
-        display: true,
-      };
-      refreshSkills(); // update list
-    })
-    .catch((error) => {
-      snackbar.value = { text: error, color: "error", display: true };
-    })
-    .finally(() => {
-      setTimeout(() => (snackbar.value.display = false), 5000);
-    });
+const loadUserInfo = async () => {
+  const result = await fetchUsers([userId.value]);
+  rawUser.value = result[0] ?? {
+    user_id: userId.value,
+    display_name: userId.value,
+  };
 };
 
-const updatedProficiency = (index: number, data: any) => {
-  if (data) skills.value[index].user_skill[0].proficiency_levels[0] = data;
-  else skills.value[index].user_skill[0].proficiency_levels = [];
-};
+watch(userId, loadUserInfo, { immediate: true });
 
 const pageTitle = computed(() => {
-  if (!user.value && !loggedInUser.value) return t("user");
+  if (!rawUser.value && !user_id.value) return t("user");
 
-  if (user.value?.username === loggedInUser.value?.preferred_username) {
+  if (rawUser.value?.user_id === user_id.value) {
     return t("my_skills");
   }
 
-  return t("user_name_skills", user.value?.display_name ?? "");
+  return t("user_name_skills", rawUser.value?.display_name ?? "");
 });
 
-// Color helper
+const removeFromSkillList = async (item) => {
+  if (!confirm(t("confirmation.remove_from_user_skill"))) return;
+
+  try {
+    await $fetch(`/api/userSkills/${item.user_skill[0].id}`, {
+      method: "DELETE",
+    });
+
+    showToast(t("success_msg.removed_from_my_list"), "success");
+    refreshSkills();
+  } catch (error: any) {
+    showToast(
+      error.message || "An error occurred while removing the skill.",
+      "error",
+    );
+  }
+};
+
+const updatedProficiency = (index: number, data: any) => {
+  if (data) {
+    skills.value[index].user_skill[0].proficiency_levels[0] = data;
+  } else {
+    skills.value[index].user_skill[0].proficiency_levels = [];
+  }
+};
+
 const levelColor = (level: number) => {
   if (level < 25) return "error";
   if (level < 50) return "orange";
@@ -235,7 +227,7 @@ const levelColor = (level: number) => {
 };
 
 const headers = computed(() => {
-  let list: any = [
+  const list: any = [
     {
       title: t("skills"),
       value: "skills",

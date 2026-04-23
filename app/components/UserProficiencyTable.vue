@@ -15,6 +15,7 @@
         <template v-slot:loading>
           <v-skeleton-loader type="table-tbody"></v-skeleton-loader>
         </template>
+
         <template v-slot:item.display_name="{ item }">
           <v-menu transition="scale-transition">
             <template v-slot:activator="{ props }">
@@ -22,7 +23,6 @@
                 {{ item.display_name ?? "..." }}
               </v-btn>
             </template>
-
             <v-list>
               <v-list-item
                 :to="`/users/${item.user_id}/skills`"
@@ -37,10 +37,9 @@
             </v-list>
           </v-menu>
         </template>
+
         <template v-slot:item.proficiency_level="{ item }">
-          <div v-if="item.proficiency_levels.length === 0">
-            No Level added yet
-          </div>
+          <div v-if="!item.proficiency_levels?.length">No Level added yet</div>
           <div v-else class="px-10">
             <v-progress-linear
               :color="levelColor(item.proficiency_levels[0].level)"
@@ -56,16 +55,17 @@
 </template>
 
 <script setup lang="ts">
-import { useLocale } from "vuetify";
-const { user } = useUserSession();
-const config = useRuntimeConfig();
+import { useAuthIdentifier } from "~/composables/useAuthIdentifier";
+
+const { user_id } = useAuthIdentifier();
 const route = useRoute();
-const { t } = useLocale();
+const { fetchUsers } = useUserLookup();
 
 const props = defineProps<{
   propItems: any[];
   propCount?: number;
 }>();
+
 const loading = ref(false);
 const items = ref<any[]>(props.propItems);
 const count = ref(props.propCount ?? 0);
@@ -89,37 +89,39 @@ const levelColor = (level: number) => {
 
 const getUserSkills = async ({ page, itemsPerPage }) => {
   loading.value = true;
-  await $fetch(
-    `/api/skills/${route.params.id}/userSkills?page=${page}&take=${itemsPerPage}&notUser=${user.value?.preferred_username}`,
-  )
-    .then((response) => {
-      items.value = response.items;
-      count.value = response.count;
-      getUsersProficiencyLvl();
-    })
-    .catch((error) => {
-      console.log(error);
-      loading.value = false;
-    });
+
+  try {
+    const response = await $fetch(
+      `/api/skills/${route.params.id}/userSkills?page=${page}&take=${itemsPerPage}&notUser=${user_id.value}`,
+    );
+
+    items.value = response.items;
+    count.value = response.count;
+
+    await enrichUserDisplayNames();
+  } catch (err) {
+    console.error(err);
+    loading.value = false;
+  }
 };
 
-const getUsersProficiencyLvl = async () => {
-  if (!config.public.userManagerApiUrl) return;
-  const user_ids = items.value.map(({ user_id }) => user_id);
-  if (user_ids.length === 0) return;
+const enrichUserDisplayNames = async () => {
+  const rows = items.value ?? [];
+  const ids = rows.map((r: any) => String(r.user_id));
 
-  await useFetchApi(`${config.public.userManagerApiUrl}/v3/users`, {
-    params: { username: user_ids },
-  })
-    .then((response: any) => {
-      items.value = response.users.map((user: any) => ({
-        display_name: user.display_name,
-        ...items.value.find(({ user_id }) => user_id === user.username),
-      }));
-    })
-    .catch((error) => {
-      console.log(error);
-    })
-    .finally(() => (loading.value = false));
+  if (ids.length === 0) return;
+
+  const normalized = await fetchUsers(ids);
+
+  items.value = rows.map((row: any) => {
+    const match = normalized.find((u) => u.user_id === row.user_id);
+
+    return {
+      ...row,
+      display_name: match?.display_name ?? row.user_id,
+    };
+  });
+
+  loading.value = false;
 };
 </script>

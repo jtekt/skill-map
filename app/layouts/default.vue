@@ -1,41 +1,43 @@
 <template>
-  <ClientOnly>
-    <v-app>
-      <AppHeader :title="title">
-        <template #leading>
-          <v-icon>mdi-graph-outline</v-icon>
-        </template>
+  <v-app>
+    <AppHeader :title="title">
+      <template #leading>
+        <v-icon>mdi-graph-outline</v-icon>
+      </template>
 
-        <template #trailing>
-          <v-btn to="/">
-            {{ $t("all_skills") }}
-          </v-btn>
+      <template #trailing>
+        <v-btn to="/">
+          {{ $t("all_skills") }}
+        </v-btn>
 
-          <v-btn v-if="user" :to="`/users/${user.preferred_username}`">
-            {{ $t("my_skills") }}
-          </v-btn>
+        <v-btn v-if="user" :to="`/users/${user.preferred_username}`">
+          {{ $t("my_skills") }}
+        </v-btn>
 
-          <!-- Localization temporarily disabled -->
-          <!--
+        <!-- Localization temporarily disabled -->
+        <!--
           <v-btn prepend-icon="mdi-translate" @click="changeLocale">
             {{ current === "en" ? "EN" : "JA" }}
           </v-btn>
           -->
 
-          <v-btn icon="mdi-logout" @click="handleLogout()" />
-        </template>
-      </AppHeader>
+        <v-btn icon="mdi-logout" @click="handleLogout()" />
+      </template>
+    </AppHeader>
 
-      <v-main>
-        <slot />
-      </v-main>
+    <v-main>
+      <slot />
+    </v-main>
 
-      <AppFooter :app-info="appInfo" :dev-info="devInfo" />
-    </v-app>
-  </ClientOnly>
+    <client-only>
+      <v-snackbar-queue v-model="queue" />
+    </client-only>
+    <AppFooter :app-info="appInfo" :dev-info="devInfo" />
+  </v-app>
 </template>
 
 <script setup lang="ts">
+const { queue } = useToast();
 const { user, clear } = useUserSession();
 const config = useRuntimeConfig();
 const router = useRouter();

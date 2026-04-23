@@ -70,19 +70,17 @@
       </v-speed-dial>
     </div>
   </div>
-  <template v-if="!nodes">
+  <template v-if="!nodes || nodes.length === 0">
     <div class="w-100">
-      <EmptyStateGraph :loading="loading" />
+      <EmptyStateGraph :loading="loading" @skill-added="emit('skill-added')" />
     </div>
   </template>
 </template>
 <script setup lang="ts">
 //@ts-ignore
 import * as d3 from "d3";
-import { useTheme } from "vuetify";
 const emit = defineEmits(["skill-added"]);
-const { global } = useTheme();
-let frameId: number | null = null;
+const { showToast } = useToast();
 let isDestroyed = false;
 const props = defineProps<{
   nodes?: any[];
@@ -123,10 +121,10 @@ const routeConfig = computed(() => {
 
 const doAdd = async (data: any) => {
   try {
-    await $fetch("/api/skills", { method: "POST", body: data });
+    $fetch("/api/skills", { method: "POST", body: data });
     emit("skill-added");
   } catch (err: any) {
-    alert(err.message || "Error saving skill");
+    showToast(err.message || "Error saving skill", "error");
   }
 };
 
@@ -332,7 +330,7 @@ function createGraph() {
     if (ticking) return;
     ticking = true;
 
-    frameId = requestAnimationFrame(() => {
+    let frameId = requestAnimationFrame(() => {
       if (isDestroyed || !link.value || !conceptNode.value) {
         ticking = false;
         return;

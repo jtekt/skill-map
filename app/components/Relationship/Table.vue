@@ -1,14 +1,22 @@
 <template>
-  <v-card>
-    <v-toolbar prominent :title="title">
+  <v-card variant="text">
+    <!-- Header -->
+    <v-card-title class="d-flex align-center">
+      {{ title }}
+
       <v-spacer></v-spacer>
+
       <RelationshipAdd
         :child-id="childId"
         :parent-id="parentId"
         :tooltip="tooltip"
         @relationship-added="loadNextPage({ page: 1, itemsPerPage: 10 })"
       />
-    </v-toolbar>
+    </v-card-title>
+
+    <v-divider />
+
+    <!-- Content -->
     <v-card-text>
       <v-data-table-server
         :headers="headers"
@@ -20,6 +28,7 @@
         @update:page="loadNextPage({ page: $event, itemsPerPage: 10 })"
         @update:items-per-page="loadNextPage({ page: 1, itemsPerPage: $event })"
       >
+        <!-- Name -->
         <template v-slot:item.name="{ item }">
           <v-hover>
             <template v-slot:default="{ isHovering, props }">
@@ -34,6 +43,8 @@
             </template>
           </v-hover>
         </template>
+
+        <!-- Image -->
         <template v-slot:item.image="{ item }">
           <v-img
             width="3em"
@@ -43,6 +54,8 @@
             style="cursor: pointer"
           />
         </template>
+
+        <!-- Remove -->
         <template v-slot:item.remove="{ item }">
           <v-btn
             icon="mdi-close"
@@ -56,6 +69,7 @@
 </template>
 
 <script setup lang="ts">
+const { showToast } = useToast();
 import { useLocale } from "vuetify";
 const props = defineProps<{
   childId?: Number;
@@ -86,7 +100,7 @@ const loadNextPage = async ({ page, itemsPerPage }) => {
   if (props.childId) url = url + `&source_skill_id=${props.childId}`;
   else if (props.parentId) url = url + `&target_skill_id=${props.parentId}`;
   loading.value = true;
-  await $fetch(url)
+  $fetch(url)
     .then((response: any) => {
       count.value = response.count;
       skills.value = response.items.map((obj) => {
@@ -105,14 +119,18 @@ const deleteRelationship = async (item: any) => {
   if (!confirm("Are you sure you want to remove this item?")) return;
   if (!item.relationId) return console.error("Missing relationship ID");
   loading.value = true;
-  await $fetch(`/api/relationships/${item.relationId}`, {
+  $fetch(`/api/relationships/${item.relationId}`, {
     method: "DELETE",
   })
     .then((_) => {
       loadNextPage({ page: 1, itemsPerPage: 10 });
     })
     .catch((error) => {
-      alert(error);
+      console.log(error);
+      showToast(
+        error.message || "An error occurred while deleting the relationship.",
+        "error",
+      );
     })
     .finally(() => {
       loading.value = false;
