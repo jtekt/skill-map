@@ -55,12 +55,10 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      user: {
-        lookup: {
-          url: "",
-          identifierField: "",
-          displayNameField: "",
-        },
+      userLookup: {
+        url: "",
+        identifierField: "",
+        displayNameField: "",
       },
       authOidcIdentifierField: "",
       apiBase: "/api",

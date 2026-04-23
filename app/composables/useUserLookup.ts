@@ -2,11 +2,11 @@ export function useUserLookup() {
   const config = useRuntimeConfig();
   const { session } = useUserSession();
 
-  const lookupUrl = config.public.userLookupUrl as string | undefined;
-  const identifierField = config.public.userLookupIdentifier as
+  const lookupUrl = config.public.userLookup.url as string | undefined;
+  const identifierField = config.public.userLookup.identifierField as
     | string
     | undefined;
-  const displayNameField = config.public.userLookupDisplayName as
+  const displayNameField = config.public.userLookup.displayNameField as
     | string
     | undefined;
 
