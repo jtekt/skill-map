@@ -7,13 +7,13 @@
 
       <div class="text-center">
         <v-card>
-          <v-card-title>Compare Your Skills To:</v-card-title>
+          <v-card-title>{{ $t("graph.compare_title") }}</v-card-title>
           <v-card-text>
             <v-select
               v-model="compareTo"
               item-title="name"
               :items="items"
-              label="Select Item"
+              :label="$t('common.select_item')"
               item-value="id"
             >
               <template v-slot:selection="{ item }">
@@ -27,10 +27,10 @@
             <v-spacer></v-spacer>
 
             <v-btn variant="text" @click="reset()" :disabled="resetDisable">
-              Reset
+              {{ $t("common.reset") }}
             </v-btn>
             <v-btn color="primary" variant="text" @click="doCompare()">
-              Compare
+              {{ $t("graph.compare") }}
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -39,7 +39,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { useAuthIdentifier } from "~/composables/useAuthIdentifier";
+import { useLocale } from "vuetify";
 
 const route = useRoute();
 const router = useRouter();
@@ -58,9 +58,10 @@ withDefaults(
     }),
   },
 );
+const { t } = useLocale();
 const items = ref([
   {
-    name: "ALL",
+    name: t("graph.compare_all"),
     id: "all",
   },
 ]);
@@ -72,7 +73,7 @@ onMounted(() => {
   const { user_id } = route.params;
   if (loggedInUserId.value && user_id && loggedInUserId.value !== user_id) {
     items.value.push({
-      name: "Your skills",
+      name: t("graph.your_skills"),
       id: loggedInUserId.value || "",
     });
   }

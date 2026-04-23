@@ -57,7 +57,7 @@
             <!-- Parents -->
             <v-col>
               <RelationshipTable
-                title="Parents"
+                :title="$t('skill_info.parents')"
                 :items="
                   skill.parents.map((r) => ({
                     ...r.target_skill,
@@ -65,7 +65,7 @@
                   }))
                 "
                 :total-item-count="skill._count.parents"
-                tooltip="Add new parent"
+                :tooltip="$t('skill_info.add_new_parent')"
                 :child-id="skill.id"
                 table-style="max-height: 500px;"
               />
@@ -153,7 +153,8 @@
 </template>
 <script lang="ts" setup>
 import { useLocale } from "vuetify";
-import { useAuthIdentifier } from "~/composables/useAuthIdentifier";
+
+const { confirm } = useConfirm();
 const { fetchUsers } = useUserLookup();
 const { showToast } = useToast();
 const { user_id } = useAuthIdentifier();
@@ -207,7 +208,12 @@ const getUsersProficiencyLvl = async () => {
 };
 
 const doUpdate = async (updatedData: any) => {
-  if (!confirm(t("confirmation.update_skill"))) return;
+  const ok = await confirm({
+    text: t("confirmation.update_skill"),
+    color: "error",
+  });
+
+  if (!ok) return;
   $fetch(`/api/skills/${route.params.id}`, {
     method: "PUT",
     body: updatedData,
@@ -223,24 +229,23 @@ const doUpdate = async (updatedData: any) => {
       };
     })
     .catch((error) => {
-      showToast(
-        error.message || "An error occurred while updating the skill.",
-        "error",
-      );
+      showToast(error.message || t("error.updating_skill"), "error");
     });
 };
 
 const doDelete = async () => {
-  if (!confirm(t("confirmation.delete_skill"))) return;
+  const ok = await confirm({
+    text: t("confirmation.delete_skill"),
+    color: "error",
+  });
+
+  if (!ok) return;
   $fetch(`/api/skills/${route.params.id}`, { method: "DELETE" })
     .then(() => {
       navigateTo("/skills");
     })
     .catch((error) => {
-      showToast(
-        error.message || "An error occurred while deleting the skill.",
-        "error",
-      );
+      showToast(error.message || t("error.deleting_skill"), "error");
     });
 };
 
@@ -270,10 +275,7 @@ const addToUserSkills = async () => {
       );
     })
     .catch((error) => {
-      showToast(
-        error.message || "An error occurred while updating your skills.",
-        "error",
-      );
+      showToast(error.message || t("error.updating_user_skills"), "error");
     })
     .finally(() => {
       addingSkill.value = false;

@@ -41,9 +41,9 @@ spec:
               value: ${NUXT_SESSION_PASSWORD}
             - name: NUXT_PUBLIC_USER_LOOKUP_URL
               value: https://employees-api.jtektrnd.net/v3/users
-            - name: NUXT_PUBLIC_USER_LOOKUP_IDENTIFIER
+            - name: NUXT_PUBLIC_USER_LOOKUP_IDENTIFIER_FIELD
               value: username
-            - name: NUXT_PUBLIC_USER_LOOKUP_DISPLAY_NAME
+            - name: NUXT_PUBLIC_USER_LOOKUP_DISPLAY_NAME_FIELD
               value: display_name
       imagePullSecrets:
         - name: ${K8S_ECR_SECRET_NAME}

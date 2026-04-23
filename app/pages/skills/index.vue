@@ -20,7 +20,7 @@
               </v-tooltip>
             </v-col>
             <v-col>
-              <v-tooltip text="Compare Skills" location="top">
+              <v-tooltip :text="$t('graph.compare_skills')" location="top">
                 <template v-slot:activator="{ props }">
                   <GraphCompare
                     key="1"
@@ -72,10 +72,7 @@ const doAdd = async (data: any) => {
       showToast(t("success_msg.add_skill", response.name), "success");
     })
     .catch((error) => {
-      showToast(
-        error.message || "An error occurred while adding the skill.",
-        "error",
-      );
+      showToast(error.message || t("error.adding_skill"), "error");
     });
 };
 </script>

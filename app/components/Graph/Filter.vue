@@ -11,14 +11,14 @@
 
       <div class="text-center">
         <v-card>
-          <v-card-title>Filter</v-card-title>
+          <v-card-title>{{ $t('graph.filter') }}</v-card-title>
           <v-card-text>
             <v-select
               v-model="selected"
               :items="items"
               item-title="name"
               item-value="id"
-              label="Select Item"
+              :label="$t('common.select_item')"
             >
               <template #selection="{ item }">
                 <v-chip>
@@ -29,7 +29,7 @@
 
             <v-switch
               v-model="recommended"
-              label="Show only recommended"
+              :label="$t('graph.show_recommended')"
               hide-details
               inset
               color="primary"
@@ -40,11 +40,11 @@
             <v-spacer></v-spacer>
 
             <v-btn variant="text" @click="reset" :disabled="resetDisable">
-              Reset
+              {{ $t('common.reset') }}
             </v-btn>
 
             <v-btn color="primary" variant="text" @click="updateFilter">
-              Filter
+              {{ $t('graph.filter') }}
             </v-btn>
           </v-card-actions>
         </v-card>

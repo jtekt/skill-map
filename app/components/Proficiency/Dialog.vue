@@ -27,7 +27,7 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="show = false">Close</v-btn>
+          <v-btn @click="show = false">{{ $t('common.close') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

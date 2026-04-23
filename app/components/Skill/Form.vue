@@ -26,7 +26,7 @@
                   :label="$t('skill_table.name')"
                   v-model="formData.name"
                   required
-                  :rules="[(v) => !!v || 'Field Required']"
+                  :rules="[(v) => !!v || $t('validation.required')]"
                 />
               </v-col>
             </v-row>
@@ -45,7 +45,7 @@
             </v-row>
             <v-checkbox
               v-model="formData.recommended"
-              label="Recommended"
+              :label="$t('skill.form.recommended')"
               color="primary"
             />
             <v-slider
@@ -54,7 +54,7 @@
               max="60"
               min="20"
               v-model="formData.importance"
-              label="Importance"
+              :label="$t('skill.form.importance')"
               track-color="grey"
             />
           </v-card-text>

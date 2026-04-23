@@ -1,44 +1,50 @@
 <template>
   <div v-if="isComparing" class="legend">
-    <h3>Comparison Legend</h3>
+    <h3>{{ $t("graph.legend.title") }}</h3>
     <div v-if="route.query.compareTo === 'all'" class="legend-items">
       <div class="legend-item">
         <div class="color-box has-skill"></div>
-        <span>{{ smOwnerLegend ?? "You" }} have this skill</span>
+        <span>{{
+          $t("graph.legend.has_skill", [smOwnerLegend ?? $t("user")])
+        }}</span>
       </div>
       <div class="legend-item">
         <div class="color-box missing-skill"></div>
-        <span>{{ smOwnerLegend ?? "You" }} don't have this skill</span>
+        <span>{{
+          $t("graph.legend.missing_skill", [smOwnerLegend ?? $t("user")])
+        }}</span>
       </div>
     </div>
     <div v-else class="legend-items">
       <div class="legend-item">
         <div class="color-box only-user-has-skill"></div>
-        <span>Only {{ smOwnerLegend ?? "You" }} have this skill</span>
+        <span>{{
+          $t("graph.legend.only_user_has", [smOwnerLegend ?? $t("user")])
+        }}</span>
       </div>
       <div class="legend-item">
         <div class="color-box only-comparison-user-has-skill"></div>
-        <span>Only {{ comparetOUser }} have this skill</span>
+        <span>{{
+          $t("graph.legend.only_other_has", ["", comparetOUser])
+        }}</span>
       </div>
       <div class="legend-item">
         <div class="color-box both-have-skill"></div>
-        <span>Both have this skill</span>
+        <span>{{ $t("graph.legend.both_have") }}</span>
       </div>
       <div class="legend-item">
         <div class="color-box neither-has-skill"></div>
-        <span>Neither has this skill</span>
+        <span>{{ $t("graph.legend.neither_has") }}</span>
       </div>
     </div>
   </div>
 
   <!-- Only show user legend when NOT comparing -->
   <div v-else-if="smOwnerLegend" class="legend">
-    <h3>{{ smOwnerLegend }}'s Skill</h3>
+    <h3>{{ $t("graph.legend.owner_skill", [smOwnerLegend]) }}</h3>
   </div>
 </template>
 <script setup lang="ts">
-import { useAuthIdentifier } from "~/composables/useAuthIdentifier";
-
 const { user_id } = useAuthIdentifier();
 const route = useRoute();
 const props = defineProps<{

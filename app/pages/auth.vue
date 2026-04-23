@@ -6,10 +6,10 @@
       rounded="lg"
       class="pa-8 mx-auto w-100"
     >
-      <h2 class="text-h4 text-center mb-2 font-weight-bold">Welcome Back</h2>
+      <h2 class="text-h4 text-center mb-2 font-weight-bold">{{ $t('auth.welcome') }}</h2>
 
       <p class="text-body-1 text-center text-medium-emphasis mb-8">
-        Please log in to access your dashboard.
+        {{ $t('auth.login_prompt') }}
       </p>
 
       <v-btn
@@ -20,14 +20,14 @@
         prepend-icon="mdi-auth0"
         @click="login"
       >
-        Continue with Keycloak
+        {{ $t('auth.continue_with_keycloak') }}
       </v-btn>
 
       <v-divider class="my-8"></v-divider>
 
       <div class="text-center text-caption text-medium-emphasis">
-        By continuing, you agree to our
-        <NuxtLink to="#">Terms of Service</NuxtLink>.
+        {{ $t('auth.agree_terms') }}
+        <NuxtLink to="#">{{ $t('auth.terms_of_service') }}</NuxtLink>.
       </div>
     </v-card>
   </v-container>

@@ -34,20 +34,24 @@
         <GraphCompare key="compare">
           <v-tooltip
             activator="parent"
-            text="Compare Skills"
+            :text="$t('graph.compare_skills')"
             location="right"
           />
         </GraphCompare>
 
         <GraphFilter key="filter" :hidden="hideFilter">
-          <v-tooltip activator="parent" text="Add filter" location="right" />
+          <v-tooltip
+            activator="parent"
+            :text="$t('graph.add_filter')"
+            location="right"
+          />
         </GraphFilter>
 
         <div key="table" style="display: inline-block">
           <v-btn :icon="routeConfig.icon" :to="routeConfig.path" />
           <v-tooltip
             activator="parent"
-            text="Display as table"
+            :text="$t('graph.display_as_table')"
             location="right"
           />
         </div>
@@ -79,8 +83,10 @@
 <script setup lang="ts">
 //@ts-ignore
 import * as d3 from "d3";
+import { useLocale } from "vuetify";
 const emit = defineEmits(["skill-added"]);
 const { showToast } = useToast();
+const { t } = useLocale();
 let isDestroyed = false;
 const props = defineProps<{
   nodes?: any[];
@@ -124,7 +130,7 @@ const doAdd = async (data: any) => {
     $fetch("/api/skills", { method: "POST", body: data });
     emit("skill-added");
   } catch (err: any) {
-    showToast(err.message || "Error saving skill", "error");
+    showToast(err.message || t("error.saving_skill"), "error");
   }
 };
 
