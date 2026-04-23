@@ -4,7 +4,11 @@
       <v-tooltip :text="tooltip" location="top">
         <template v-slot:activator="{ props }">
           <div v-bind="props">
-            <v-btn v-bind="activatorProps" icon="mdi-format-list-group-plus" />
+            <v-btn
+              v-bind="activatorProps"
+              icon="mdi-format-list-group-plus"
+              variant="text"
+            />
           </div>
         </template>
       </v-tooltip>
@@ -23,6 +27,7 @@
   </v-dialog>
 </template>
 <script setup lang="ts">
+const { showToast } = useToast();
 const show = ref(false);
 const emit = defineEmits(["relationshipAdded"]);
 const props = defineProps<{
@@ -33,15 +38,16 @@ const props = defineProps<{
 
 const addRelationship = async (item: any) => {
   const { childId, parentId } = props;
-  if (!childId && !parentId) return alert("Missing childId or parentId");
+  if (!childId && !parentId)
+    return showToast("Missing childId or parentId", "error");
   if (childId && parentId)
-    return alert("Cannot have both childId and parentId");
+    return showToast("Cannot have both childId and parentId", "error");
   let body: any;
   if (childId) body = { target_skill_id: item.id, source_skill_id: childId };
   else if (parentId)
     body = { source_skill_id: item.id, target_skill_id: parentId };
 
-  await $fetch("/api/relationships", { method: "post", body }).then(
+  $fetch("/api/relationships", { method: "post", body }).then(
     (response: any) => {
       emit("relationshipAdded", { skill: item, relationship: response.items });
       show.value = false;

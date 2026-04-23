@@ -12,12 +12,11 @@
 </template>
 
 <script setup lang="ts">
-const { session } = useUserSession();
 const route = useRoute();
-const config = useRuntimeConfig();
+const { fetchUsers } = useUserLookup();
 const queryParams = computed(() => ({ ...route.query }));
 const skills = computed(() => data.value?.items ?? []);
-const user_id = computed(() => route.params.user_id as string);
+const user_id = computed(() => String(route.params.user_id));
 const compareTo = computed(() => route.query.compareTo);
 
 const {
@@ -30,26 +29,27 @@ const {
   immediate: true,
 });
 
-const user_ids = computed(() => {
-  const ids = [user_id.value];
+const user_ids = computed<string[]>(() => {
+  const ids: string[] = [];
+
+  if (user_id.value) ids.push(String(user_id.value));
   if (compareTo.value && compareTo.value !== "all") {
-    ids.push(compareTo.value as string);
+    ids.push(String(compareTo.value));
   }
-  return ids;
+
+  return ids.filter(Boolean);
 });
 
-const { data: users } = useFetch(
-  () => `${config.public.userManagerApiUrl}/v3/users`,
-  {
-    params: {
-      username: user_ids,
-    },
-    headers: {
-      Authorization: `Bearer ${session.value?.tokens?.access_token || ""}`,
-    },
-    watch: [user_ids],
-    transform: (response: any) => response.users,
-    immediate: true,
-  },
-);
+const rawUsers = ref<{ user_id: string; display_name: string }[]>([]);
+const loadingUsers = ref(false);
+
+const loadUsers = async () => {
+  loadingUsers.value = true;
+  rawUsers.value = await fetchUsers(user_ids.value);
+  loadingUsers.value = false;
+};
+
+watch([user_ids], loadUsers, { immediate: true });
+
+const users = computed(() => rawUsers.value);
 </script>

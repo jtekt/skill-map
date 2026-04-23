@@ -120,10 +120,12 @@ export const readSkillRelationShip = async (query: any) => {
     items = relRows;
   }
 
-  const [{ count }] = await db
+  const result = await db
     .select({ count: sql<number>`COUNT(*)` })
     .from(relationship)
     .where(whereExpr);
+
+  const count = result[0]?.count ?? 0;
 
   return {
     items,

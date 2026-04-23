@@ -39,9 +39,11 @@
   </div>
 </template>
 <script lang="ts" setup>
+import { useAuthIdentifier } from "~/composables/useAuthIdentifier";
+
 const route = useRoute();
 const router = useRouter();
-const { user } = useUserSession();
+const { user_id: loggedInUserId } = useAuthIdentifier();
 
 const menu = ref(false);
 withDefaults(
@@ -68,10 +70,10 @@ const resetDisable = computed(() => compareTo.value !== "all");
 
 onMounted(() => {
   const { user_id } = route.params;
-  if (user.value && user_id && user.value?.preferred_username !== user_id) {
+  if (loggedInUserId.value && user_id && loggedInUserId.value !== user_id) {
     items.value.push({
       name: "Your skills",
-      id: user.value?.preferred_username || "",
+      id: loggedInUserId.value || "",
     });
   }
   const { compareTo: ct } = route.query;
@@ -84,7 +86,7 @@ const doCompare = () => {
       name: route.name,
     });
   else {
-    const user_id = route.params.user_id ?? user.value?.preferred_username;
+    const user_id = route.params.user_id ?? loggedInUserId.value;
     router.push({
       path: `/users/${user_id}`,
       query: { compareTo: compareTo.value },

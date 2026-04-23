@@ -1,5 +1,5 @@
 <template>
-  <div v-if="enableComparison" class="legend">
+  <div v-if="isComparing" class="legend">
     <h3>Comparison Legend</h3>
     <div v-if="route.query.compareTo === 'all'" class="legend-items">
       <div class="legend-item">
@@ -31,34 +31,33 @@
     </div>
   </div>
 
-  <div v-if="!enableComparison && smOwnerLegend" class="legend">
+  <!-- Only show user legend when NOT comparing -->
+  <div v-else-if="smOwnerLegend" class="legend">
     <h3>{{ smOwnerLegend }}'s Skill</h3>
   </div>
 </template>
 <script setup lang="ts">
-const { user } = useUserSession();
+import { useAuthIdentifier } from "~/composables/useAuthIdentifier";
+
+const { user_id } = useAuthIdentifier();
 const route = useRoute();
 const props = defineProps<{
-  users?: any;
+  users?: { user_id: string; display_name: string }[];
 }>();
 
-const enableComparison = computed(() => {
-  return props.users && props.users[1]
-    ? props.users[1].display_name
-    : undefined;
+const isComparing = computed(() => {
+  return Array.isArray(props.users) && props.users.length > 1;
 });
 
 const comparetOUser = computed(() => {
-  return props.users && props.users[1]
-    ? props.users[1].display_name
-    : undefined;
+  return props.users?.[1]?.display_name ?? "";
 });
 
 const smOwnerLegend = computed(() => {
-  return props.users &&
-    props.users[0].username != user.value?.preferred_username
-    ? props.users[0].display_name
-    : undefined;
+  const owner = props.users?.[0];
+  if (!owner) return undefined;
+
+  return owner.user_id !== user_id.value ? owner.display_name : undefined;
 });
 </script>
 <style>

@@ -1,6 +1,6 @@
 import { sql, eq, and, inArray } from "drizzle-orm";
 import { db } from ".";
-import { skill, user_skill } from "./schema";
+import { relationship, skill, user_skill } from "./schema";
 import { getAllRelatedSkills } from "../utils/getAllRelatedSkills";
 
 /**
@@ -260,22 +260,22 @@ export const readSkillsByName = async (oldSkills: any) => {
   return { items };
 };
 
-export const readSkill = async (params: any) => {
-  const { id, user_id } = params;
+export const readSkill = async (params: {
+  id: number | string;
+  user_id?: string;
+}) => {
+  const id = Number(params.id);
+  const uid = params.user_id ? String(params.user_id) : null;
 
   const skillRow = await db.query.skill.findFirst({
-    where: (s, { eq }) => eq(s.id, Number(id)),
+    where: (s, { eq }) => eq(s.id, id),
     with: {
       parents: {
-        with: {
-          target_skill: true,
-        },
+        with: { target_skill: true },
         limit: 10,
       },
       children: {
-        with: {
-          source_skill: true,
-        },
+        with: { source_skill: true },
         limit: 10,
       },
       user_skill: {
@@ -292,24 +292,43 @@ export const readSkill = async (params: any) => {
 
   if (!skillRow) return null;
 
-  let filteredUserSkill = skillRow.user_skill;
-  if (user_id) {
-    filteredUserSkill = skillRow.user_skill.filter(
-      (us: any) => us.user_id !== user_id,
-    );
-  }
+  const filteredUserSkill = uid
+    ? skillRow.user_skill.filter((us) => String(us.user_id) !== uid)
+    : skillRow.user_skill;
 
-  const result = {
-    ...skillRow,
-    user_skill: filteredUserSkill,
-    _count: {
-      parents: skillRow.parents.length,
-      children: skillRow.children.length,
-      user_skill: filteredUserSkill.length,
-    },
+  const result = await db.execute(
+    sql<{
+      parents: number;
+      children: number;
+      user_skill: number;
+    }>`
+      SELECT
+        (SELECT count(*) FROM ${relationship} WHERE source_skill_id = ${id}) AS parents,
+        (SELECT count(*) FROM ${relationship} WHERE target_skill_id = ${id}) AS children,
+        (SELECT count(*) FROM ${user_skill}
+          WHERE skill_id = ${id}
+          ${uid ? sql`AND user_id <> ${uid}` : sql``}
+        ) AS user_skill
+    `,
+  );
+
+  const countsRaw = result.rows?.[0] ?? {
+    parents: 0,
+    children: 0,
+    user_skill: 0,
   };
 
-  return result;
+  const counts = {
+    parents: Number(countsRaw.parents),
+    children: Number(countsRaw.children),
+    user_skill: Number(countsRaw.user_skill),
+  };
+
+  return {
+    ...skillRow,
+    user_skill: filteredUserSkill,
+    _count: counts,
+  };
 };
 
 export const updateSkill = async (params: any, data: any) => {

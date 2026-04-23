@@ -30,6 +30,9 @@ COPY --from=build /app/.output ./.output
 
 ENV NODE_OPTIONS="--max-old-space-size=180"
 
+# Ensure migrate script executable
+RUN chmod +x ./migrate.sh
+
 # Change the port and host
 ENV NODE_ENV=production
 ENV PORT=80

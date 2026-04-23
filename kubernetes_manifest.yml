@@ -27,8 +27,6 @@ spec:
           env:
             - name: DATABASE_URL
               value: ${DATABASE_URL}
-            - name: NUXT_PUBLIC_USER_MANAGER_API_URL
-              value: https://employees-api.jtektrnd.net
             - name: NUXT_PUBLIC_DEVELOPER
               value: Leah Ishiguro
             - name: NUXT_PUBLIC_DEVELOPER_HOMEPAGE
@@ -41,6 +39,12 @@ spec:
               value: public
             - name: NUXT_SESSION_PASSWORD
               value: ${NUXT_SESSION_PASSWORD}
+            - name: NUXT_PUBLIC_USER_LOOKUP_URL
+              value: https://employees-api.jtektrnd.net/v3/users
+            - name: NUXT_PUBLIC_USER_LOOKUP_IDENTIFIER
+              value: username
+            - name: NUXT_PUBLIC_USER_LOOKUP_DISPLAY_NAME
+              value: display_name
       imagePullSecrets:
         - name: ${K8S_ECR_SECRET_NAME}
 ---

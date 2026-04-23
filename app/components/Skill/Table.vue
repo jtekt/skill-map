@@ -81,7 +81,7 @@ onMounted(() => {
 });
 
 const getSkills = async (event: any) => {
-  await $fetch(
+  $fetch(
     `/api/skills?page=${event.page}&take=${event.itemsPerPage}&skills=${search.value}`,
   )
     .then((response: any) => {

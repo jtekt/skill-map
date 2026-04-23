@@ -56,6 +56,7 @@
 </template>
 
 <script setup lang="ts">
+const { showToast } = useToast();
 const route = useRoute();
 const emit = defineEmits(["skill-added"]);
 defineProps<{
@@ -70,7 +71,7 @@ const doAdd = async (data: any) => {
       emit("skill-added");
     })
     .catch((error) => {
-      alert(error.message);
+      showToast(error.message, "error");
     });
 };
 </script>

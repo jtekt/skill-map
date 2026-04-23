@@ -1,7 +1,10 @@
 <template>
-  <v-card :elevation="elevation ?? 1">
-    <v-toolbar prominent title="Proficieny Level Table">
+  <v-card>
+    <v-card-title class="d-flex align-center">
+      Proficieny Level Table
+
       <v-spacer></v-spacer>
+
       <!-- NOTE: I dont think chart is necessary. I  will leave it like this as of the moment.  -->
       <div v-if="count > 2" class="pa-2">
         <v-btn-toggle v-model="toggle" variant="outlined" divided>
@@ -9,6 +12,7 @@
           <v-btn icon="mdi-chart-bell-curve-cumulative"></v-btn>
         </v-btn-toggle>
       </div>
+
       <ProficiencyForm
         v-if="allowChanges"
         :dialog-data="{
@@ -17,7 +21,8 @@
         }"
         @save-data="saveNewData"
       />
-    </v-toolbar>
+    </v-card-title>
+
     <v-card-text>
       <template v-if="toggle === 0">
         <v-data-table-server
@@ -68,11 +73,13 @@
           </template>
         </v-data-table-server>
       </template>
+
       <ProficiencyGraph v-else :proficiency-levels="[...items]" />
     </v-card-text>
   </v-card>
 </template>
 <script lang="ts" setup>
+const { showToast } = useToast();
 import { useLocale } from "vuetify";
 import { format } from "date-fns";
 import { ja, enUS } from "date-fns/locale";
@@ -131,12 +138,16 @@ const saveNewData = async (data: any) => {
       emit("updated-proficiency", response);
     })
     .catch((error) => {
-      alert(error);
+      showToast(
+        error.message || "An error occurred while saving the data.",
+        "error",
+      );
+      console.error(error);
     });
 };
 
 const updateData = async (data: any, id: number) => {
-  await $fetch(`/api/proficiency/${id}`, {
+  $fetch(`/api/proficiency/${id}`, {
     method: "PUT",
     body: { ...data },
   })
@@ -151,14 +162,18 @@ const updateData = async (data: any, id: number) => {
       }
     })
     .catch((error) => {
-      alert(error);
+      showToast(
+        error.message || "An error occurred while updating the data.",
+        "error",
+      );
+      console.error(error);
     });
 };
 
 const deleteData = async (id: number) => {
   if (!confirm("Are you sure you want to remove this level from your list?"))
     return;
-  await $fetch(`/api/proficiency/${id}`, {
+  $fetch(`/api/proficiency/${id}`, {
     method: "DELETE",
   })
     .then((_) => {
@@ -168,12 +183,16 @@ const deleteData = async (id: number) => {
       emit("updated-proficiency", items.value[0] ?? null);
     })
     .catch((error) => {
-      alert(error);
+      showToast(
+        error.message || "An error occurred while updating the data.",
+        "error",
+      );
+      console.error(error);
     });
 };
 
 const getLevels = async (event: any) => {
-  await $fetch(
+  $fetch(
     `/api/userSkills/${props.userSkillId}/proficiency?page=${event.page}&take=${event.itemsPerPage}`,
   )
     .then((response) => {
