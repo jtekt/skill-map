@@ -107,11 +107,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ${APPLICATION_NAME}
+  name: ${APPLICATION_NAME}-redirection
 spec:
   type: NodePort
   selector:
-    app: ${APPLICATION_NAME}
+    app: ${APPLICATION_NAME}-redirection
   ports:
     - port: 80
       nodePort: ${K8S_SERVICE_PORT}
