@@ -58,7 +58,8 @@
   </v-row>
 </template>
 <script lang="ts" setup>
-const { showToast } = useToast();
+import { useToast } from "@jtekt/vue-feedback-kit";
+const toast = useToast();
 import { useLocale } from "vuetify";
 const { t } = useLocale();
 
@@ -69,10 +70,10 @@ const doAdd = async (data: any) => {
     body: JSON.stringify(data),
   })
     .then((response) => {
-      showToast(t("success_msg.add_skill", response.name), "success");
+      toast.success(t("success_msg.add_skill", response.name));
     })
     .catch((error) => {
-      showToast(error.message || t("error.adding_skill"), "error");
+      toast.error(error.message || t("error.adding_skill"));
     });
 };
 </script>

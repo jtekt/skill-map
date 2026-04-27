@@ -69,8 +69,9 @@
 </template>
 
 <script setup lang="ts">
+import { useToast, useConfirm } from "@jtekt/vue-feedback-kit";
+const toast = useToast();
 const { confirm } = useConfirm();
-const { showToast } = useToast();
 import { useLocale } from "vuetify";
 const props = defineProps<{
   childId?: Number;
@@ -133,7 +134,7 @@ const deleteRelationship = async (item: any) => {
     })
     .catch((error) => {
       console.log(error);
-      showToast(error.message || t("error.deleting_relationship"), "error");
+      toast.error(error.message || t("error.deleting_relationship"));
     })
     .finally(() => {
       loading.value = false;

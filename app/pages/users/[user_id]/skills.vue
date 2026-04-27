@@ -135,11 +135,12 @@
 <script setup lang="ts">
 import { useLocale } from "vuetify";
 import { useAuthIdentifier } from "~/composables/useAuthIdentifier";
+import { useToast, useConfirm } from "@jtekt/vue-feedback-kit";
+const toast = useToast();
 
 const { confirm } = useConfirm();
 const route = useRoute();
 const { t } = useLocale();
-const { showToast } = useToast();
 const { user_id } = useAuthIdentifier();
 
 const search = ref("");
@@ -206,10 +207,10 @@ const removeFromSkillList = async (item) => {
       method: "DELETE",
     });
 
-    showToast(t("success_msg.removed_from_my_list"), "success");
+    toast.success(t("success_msg.removed_from_my_list"));
     refreshSkills();
   } catch (error: any) {
-    showToast(error.message || t("error.removing_skill"), "error");
+    toast.error(error.message || t("error.removing_skill"));
   }
 };
 

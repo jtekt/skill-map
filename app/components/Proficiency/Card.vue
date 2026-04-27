@@ -79,7 +79,8 @@
   </v-card>
 </template>
 <script lang="ts" setup>
-const { showToast } = useToast();
+import { useToast, useConfirm } from "@jtekt/vue-feedback-kit";
+const toast = useToast();
 import { useLocale } from "vuetify";
 import { format } from "date-fns";
 import { ja, enUS } from "date-fns/locale";
@@ -139,7 +140,7 @@ const saveNewData = async (data: any) => {
       emit("updated-proficiency", response);
     })
     .catch((error) => {
-      showToast(error.message || t("error.saving_data"), "error");
+      toast.error(error.message || t("error.saving_data"));
       console.error(error);
     });
 };
@@ -160,7 +161,7 @@ const updateData = async (data: any, id: number) => {
       }
     })
     .catch((error) => {
-      showToast(error.message || t("error.updating_data"), "error");
+      toast.error(error.message || t("error.updating_data"));
       console.error(error);
     });
 };
@@ -182,7 +183,7 @@ const deleteData = async (id: number) => {
       emit("updated-proficiency", items.value[0] ?? null);
     })
     .catch((error) => {
-      showToast(error.message || t("error.updating_data"), "error");
+      toast.error(error.message || t("error.updating_data"));
       console.error(error);
     });
 };

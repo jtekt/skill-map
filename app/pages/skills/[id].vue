@@ -154,9 +154,10 @@
 <script lang="ts" setup>
 import { useLocale } from "vuetify";
 
+import { useToast, useConfirm } from "@jtekt/vue-feedback-kit";
+const toast = useToast();
 const { confirm } = useConfirm();
 const { fetchUsers } = useUserLookup();
-const { showToast } = useToast();
 const { user_id } = useAuthIdentifier();
 const { t } = useLocale();
 const route = useRoute();
@@ -219,7 +220,7 @@ const doUpdate = async (updatedData: any) => {
     body: updatedData,
   })
     .then((response: any) => {
-      showToast(t("success_msg.update_skill"), "success");
+      toast.success(t("success_msg.update_skill"));
       skill.value = {
         ...skill.value,
         recommended: response.recommended,
@@ -229,7 +230,7 @@ const doUpdate = async (updatedData: any) => {
       };
     })
     .catch((error) => {
-      showToast(error.message || t("error.updating_skill"), "error");
+      toast.error(error.message || t("error.updating_skill"));
     });
 };
 
@@ -245,7 +246,7 @@ const doDelete = async () => {
       navigateTo("/skills");
     })
     .catch((error) => {
-      showToast(error.message || t("error.deleting_skill"), "error");
+      toast.error(error.message || t("error.deleting_skill"));
     });
 };
 
@@ -267,15 +268,14 @@ const addToUserSkills = async () => {
   $fetch(url, options)
     .then((response) => {
       skill.value.skill_added = response;
-      showToast(
+      toast.success(
         skill.value.skill_added
           ? t("success_msg.added_my_list")
           : t("success_msg.removed_from_my_list"),
-        "success",
       );
     })
     .catch((error) => {
-      showToast(error.message || t("error.updating_user_skills"), "error");
+      toast.error(error.message || t("error.updating_user_skills"));
     })
     .finally(() => {
       addingSkill.value = false;

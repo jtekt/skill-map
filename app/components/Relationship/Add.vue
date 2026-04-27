@@ -27,8 +27,9 @@
   </v-dialog>
 </template>
 <script setup lang="ts">
+import { useToast } from "@jtekt/vue-feedback-kit";
+const toast = useToast();
 import { useLocale } from "vuetify";
-const { showToast } = useToast();
 const { t } = useLocale();
 const show = ref(false);
 const emit = defineEmits(["relationshipAdded"]);
@@ -41,9 +42,9 @@ const props = defineProps<{
 const addRelationship = async (item: any) => {
   const { childId, parentId } = props;
   if (!childId && !parentId)
-    return showToast(t("error.missing_relationship_id"), "error");
+    return toast.error(t("error.missing_relationship_id"));
   if (childId && parentId)
-    return showToast(t("error.conflicting_relationship_id"), "error");
+    return toast.error(t("error.conflicting_relationship_id"));
   let body: any;
   if (childId) body = { target_skill_id: item.id, source_skill_id: childId };
   else if (parentId)

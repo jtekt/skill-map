@@ -24,15 +24,14 @@
     </v-main>
 
     <client-only>
-      <v-snackbar-queue v-model="queue" />
-      <AppConfirmDialog />
+      <ConfirmDialog />
+      <Toaster />
     </client-only>
     <AppFooter :app-info="appInfo" :dev-info="devInfo" />
   </v-app>
 </template>
 
 <script setup lang="ts">
-const { queue } = useToast();
 const { user, clear } = useUserSession();
 const config = useRuntimeConfig();
 const router = useRouter();
