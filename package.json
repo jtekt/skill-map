@@ -16,6 +16,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@jtekt/vue-feedback-kit": "^1.0.0",
     "@mdi/font": "^7.4.47",
     "chart.js": "^4.5.1",
     "d3": "^7.9.0",

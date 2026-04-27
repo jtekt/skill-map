@@ -56,7 +56,8 @@
 </template>
 
 <script setup lang="ts">
-const { showToast } = useToast();
+import { useToast } from "@jtekt/vue-feedback-kit";
+const toast = useToast();
 const route = useRoute();
 const emit = defineEmits(["skill-added"]);
 defineProps<{
@@ -71,7 +72,7 @@ const doAdd = async (data: any) => {
       emit("skill-added");
     })
     .catch((error) => {
-      showToast(error.message, "error");
+      toast.error(error.message);
     });
 };
 </script>

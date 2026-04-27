@@ -81,11 +81,12 @@
   </template>
 </template>
 <script setup lang="ts">
+import { useToast } from "@jtekt/vue-feedback-kit";
+const toast = useToast();
 //@ts-ignore
 import * as d3 from "d3";
 import { useLocale } from "vuetify";
 const emit = defineEmits(["skill-added"]);
-const { showToast } = useToast();
 const { t } = useLocale();
 let isDestroyed = false;
 const props = defineProps<{
@@ -130,7 +131,7 @@ const doAdd = async (data: any) => {
     $fetch("/api/skills", { method: "POST", body: data });
     emit("skill-added");
   } catch (err: any) {
-    showToast(err.message || t("error.saving_skill"), "error");
+    toast.error(err.message || t("error.saving_skill"));
   }
 };
 

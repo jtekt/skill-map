@@ -41,6 +41,7 @@ export default defineNuxtConfig({
         "vue-chartjs",
         "chart.js",
         "chart.js/auto",
+        "@jtekt/vue-feedback-kit",
       ],
     },
     vue: {
