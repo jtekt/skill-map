@@ -50,7 +50,7 @@
             />
           </template>
           <template v-slot:item.actions="{ item }">
-            <div class="d-flex">
+            <div class="d-flex align-center">
               <ProficiencyForm
                 :dialog-data="{
                   title: $t('proficiency.update_level'),
@@ -67,7 +67,6 @@
                 @click="deleteData(item.id)"
                 variant="text"
                 color="error"
-                class="text-center pt-4"
               />
             </div>
           </template>
@@ -87,7 +86,7 @@ import { ja, enUS } from "date-fns/locale";
 
 const locales = { ja, enUS };
 
-const { confirm } = useConfirm();
+const confirm = useConfirm();
 const { t, current } = useLocale();
 const props = defineProps<{
   userSkillId: number;
@@ -167,12 +166,12 @@ const updateData = async (data: any, id: number) => {
 };
 
 const deleteData = async (id: number) => {
-  const ok = await confirm({
-    text: t("confirmation.remove_proficiency_level"),
-    color: "error",
-  });
-
-  if (!ok) return;
+  if (
+    !(await confirm(t("confirmation.remove_proficiency_level"), {
+      color: "error",
+    }))
+  )
+    return;
   $fetch(`/api/proficiency/${id}`, {
     method: "DELETE",
   })

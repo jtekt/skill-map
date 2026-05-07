@@ -1,52 +1,51 @@
 <template>
   <div class="text-center pa-4">
-    <v-dialog v-model="show" max-width="500" persistent>
+    <v-dialog v-model="show" max-width="420" persistent>
+      <!-- ACTIVATOR -->
       <template v-slot:activator="{ props: activatorProps }">
         <div v-bind="activatorProps">
           <v-btn
             :icon="dialogData.icon"
             :size="dialogData.size ?? ''"
-            :variant="dialogData.variant ?? 'plain'"
-          >
-          </v-btn>
+            :color="dialogData.color"
+            :variant="dialogData.variant ?? 'text'"
+          />
         </div>
       </template>
 
-      <v-form @submit.prevent="submitForm" v-model="form" class="pt-8">
+      <!-- FORM -->
+      <v-form v-model="form" @submit.prevent="submitForm">
         <v-card>
-          <v-card-title>{{ dialogData.title }}</v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col>
-                <v-slider
-                  :color="levelColor"
-                  :step="1"
-                  max="100"
-                  min="1"
-                  v-model="formData.level"
-                  required
-                  track-color="grey"
-                />
-              </v-col>
-            </v-row>
+          <!-- TITLE BAR -->
+          <v-card-title class="d-flex align-center">
+            <span class="text-h6">{{ dialogData.title }}</span>
+            <v-spacer />
+            <v-btn
+              icon="mdi-close"
+              variant="text"
+              @click="reset"
+              size="small"
+            />
+          </v-card-title>
+
+          <v-divider />
+
+          <!-- CONTENT -->
+          <v-card-text class="pt-10 pb-0">
+            <v-slider
+              v-model="formData.level"
+              min="1"
+              max="100"
+              step="1"
+              track-color="grey-lighten-2"
+              :color="levelColor"
+              thumb-label="always"
+            />
           </v-card-text>
 
-          <v-card-actions class="my-2 d-flex justify-end">
-            <v-btn
-              class="text-none"
-              rounded="xl"
-              :text="$t('$vuetify.confirmEdit.cancel')"
-              @click="reset"
-            ></v-btn>
-
-            <v-btn
-              :disabled="!form || identical"
-              class="text-none"
-              color="primary"
-              :text="$t('$vuetify.confirmEdit.ok')"
-              rounded="xl"
-              type="submit"
-            />
+          <!-- ACTIONS -->
+          <v-card-actions class="px-4 justify-end">
+            <v-btn color="primary" text="Add" type="submit" :disabled="!form" />
           </v-card-actions>
         </v-card>
       </v-form>
@@ -55,40 +54,26 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from "vue";
 const props = defineProps<{
   dialogData: any;
-  initialData?: any;
 }>();
 const emit = defineEmits(["save-data"]);
-const formData = ref({ ...props.initialData });
-const form = ref(false);
-const identical = ref(true);
-const show = ref(false);
 
-watch(formData.value, () => {
-  if (!props.initialData || !form.value) {
-    identical.value = false;
-    return;
-  }
-  if (
-    JSON.stringify(props.initialData).toLocaleLowerCase() ===
-    JSON.stringify(formData.value).toLocaleLowerCase()
-  ) {
-    identical.value = true;
-  } else {
-    identical.value = false;
-  }
+const show = ref(false);
+const form = ref(false);
+
+const formData = ref({
+  level: 50, // default level for new skill
 });
 
 const submitForm = () => {
   emit("save-data", { level: formData.value.level });
-  show.value = false;
+  reset();
 };
 
 const reset = () => {
   show.value = false;
-  formData.value = props.initialData || {};
+  formData.value = { level: 50 };
 };
 
 const levelColor = computed(() => {

@@ -12,6 +12,11 @@ export default {
     add_new_child: "Add new child skill",
     add_to_skill: "Add to my skill map",
     remove_from_skill: "Remove from my skill map",
+    relationship: "Skill Relationship",
+    not_added_yet: "This skill has not been added to your skill list yet.",
+    add_skill: "Add Skill",
+    remove_skill: "Remove Skill",
+    user_profeciency_title: "User Skill Status",
   },
   proficiency_level: "Proficiency Level",
   add_new_skill: "Add new skill",
@@ -27,6 +32,7 @@ export default {
     form: {
       recommended: "Recommended",
       importance: "Importance",
+      description: "Description",
     },
   },
   user: "User",
@@ -52,6 +58,7 @@ export default {
     remove_relationship: "Are you sure you want to remove this item?",
   },
   success_msg: {
+    add_skill: "Skill added successfully",
     update_skill: "Update Successful",
     added_my_list: "Skill added to my skill list",
     removed_from_my_list: "Skill removed from my skill list",

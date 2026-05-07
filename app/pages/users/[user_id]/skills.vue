@@ -42,8 +42,6 @@
           flat
           hide-details
           single-line
-          variant="solo-filled"
-          density="compact"
           :label="$t('search')"
         />
       </v-card-title>
@@ -138,7 +136,7 @@ import { useAuthIdentifier } from "~/composables/useAuthIdentifier";
 import { useToast, useConfirm } from "@jtekt/vue-feedback-kit";
 const toast = useToast();
 
-const { confirm } = useConfirm();
+const confirm = useConfirm();
 const route = useRoute();
 const { t } = useLocale();
 const { user_id } = useAuthIdentifier();
@@ -196,8 +194,7 @@ const pageTitle = computed(() => {
 });
 
 const removeFromSkillList = async (item) => {
-  const ok = await confirm({
-    text: t("confirmation.remove_from_user_skill"),
+  const ok = await confirm(t("confirmation.remove_from_user_skill"), {
     color: "error",
   });
 

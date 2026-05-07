@@ -12,6 +12,11 @@ export default {
     add_new_child: "新しい子スキルを追加",
     add_to_skill: "スキルマップに追加",
     remove_from_skill: "スキルマップから削除",
+    relationship: "スキルの関連性",
+    not_added_yet: "このスキルはまだあなたのスキルリストに追加されていません。",
+    add_skill: "スキルを追加",
+    remove_skill: "スキルを削除",
+    user_profeciency_title: "ユーザーのスキル状況",
   },
   add_new_skill: "新しいスキルを追加",
   display_as_graph: "グラフとして表示",
@@ -26,6 +31,7 @@ export default {
     form: {
       recommended: "おすすめ",
       importance: "重要度",
+      description: "説明",
     },
   },
   user: "ユーザー",
@@ -51,6 +57,7 @@ export default {
     remove_relationship: "このアイテムを削除してもよろしいですか？",
   },
   success_msg: {
+    add_skill: "スキルが正常に追加されました",
     update_skill: "更新が成功しました",
     removed_from_my_list: "スキルがリストから削除されました",
     added_my_list: "スキルがリストに追加されました",

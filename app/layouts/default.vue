@@ -2,7 +2,7 @@
   <v-app>
     <AppHeader :title="title">
       <template #leading>
-        <v-icon>mdi-graph-outline</v-icon>
+        <img src="/logo.svg" class="text-red-500" />
       </template>
 
       <template #trailing>

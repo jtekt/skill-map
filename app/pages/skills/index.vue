@@ -1,67 +1,89 @@
 <template>
-  <v-row>
-    <v-col>
-      <v-toolbar prominent>
-        <v-toolbar-title>{{ $t("skills") }}{{ $t("table") }}</v-toolbar-title>
-        <v-spacer></v-spacer>
+  <v-container fluid>
+    <v-card>
+      <v-card-title class="d-flex align-center pe-2">
+        <!-- TITLE -->
+        <span class="text-h6"> {{ $t("skills") }} {{ $t("table") }} </span>
 
-        <div class="pe-4">
-          <v-row justify="end">
-            <v-col>
-              <v-tooltip :text="$t('display_as_graph')" location="top">
-                <template v-slot:activator="{ props }">
-                  <v-btn
-                    to="/"
-                    icon="mdi-graph"
-                    color="primary"
-                    v-bind="props"
-                  />
-                </template>
-              </v-tooltip>
-            </v-col>
-            <v-col>
-              <v-tooltip :text="$t('graph.compare_skills')" location="top">
-                <template v-slot:activator="{ props }">
-                  <GraphCompare
-                    key="1"
-                    v-bind="props"
-                    :button-props="{
-                      icon: 'mdi-chart-scatter-plot-hexbin',
-                      color: 'primary',
-                    }"
-                  />
-                </template>
-              </v-tooltip>
-            </v-col>
-          </v-row>
-        </div>
-        <v-tooltip :text="$t('add_new_skill')" location="bottom">
-          <template v-slot:activator="{ props }">
+        <v-spacer />
+
+        <div class="d-flex align-center me-4">
+          <!-- Graph Button -->
+          <div class="me-2">
+            <v-tooltip :text="$t('display_as_graph')" location="top">
+              <template #activator="{ props }">
+                <v-btn
+                  to="/"
+                  icon="mdi-graph"
+                  size="small"
+                  color="primary"
+                  v-bind="props"
+                />
+              </template>
+            </v-tooltip>
+          </div>
+
+          <!-- Compare Graph -->
+          <div class="me-2">
+            <v-tooltip :text="$t('graph.compare_skills')" location="top">
+              <template #activator="{ props }">
+                <GraphCompare
+                  v-bind="props"
+                  :button-props="{
+                    size: 'small',
+                    icon: 'mdi-chart-scatter-plot-hexbin',
+                    color: 'primary',
+                  }"
+                />
+              </template>
+            </v-tooltip>
+          </div>
+
+          <!-- Add Skill -->
+          <div class="me-2">
             <SkillForm
-              v-bind="props"
               :dialog-data="{
-                icon: 'mdi-notebook-plus-outline',
+                size: 'small',
                 color: 'success',
+                icon: 'mdi-notebook-plus-outline',
                 title: $t('add_new_skill'),
               }"
               @save-data="doAdd($event)"
-            />
-          </template>
-        </v-tooltip>
-      </v-toolbar>
-    </v-col>
-  </v-row>
-  <v-row>
-    <v-col>
-      <SkillTable />
-    </v-col>
-  </v-row>
+            >
+              <v-tooltip
+                activator="parent"
+                :text="$t('add_new_skill')"
+                location="right"
+              />
+            </SkillForm>
+          </div>
+        </div>
+
+        <!-- SEARCH FIELD -->
+        <v-text-field
+          prepend-inner-icon="mdi-magnify"
+          v-model="search"
+          flat
+          hide-details
+          single-line
+          :label="$t('search')"
+          class="p-4"
+          style="max-width: 350px"
+        />
+      </v-card-title>
+      <v-card-text>
+        <SkillTable v-model:search="search" :showSearch="false" />
+      </v-card-text>
+    </v-card>
+  </v-container>
 </template>
 <script lang="ts" setup>
+import { useLocale } from "vuetify";
 import { useToast } from "@jtekt/vue-feedback-kit";
 const toast = useToast();
-import { useLocale } from "vuetify";
+const router = useRouter();
 const { t } = useLocale();
+const search = ref("");
 
 const doAdd = async (data: any) => {
   $fetch("/api/skills", {
@@ -71,6 +93,7 @@ const doAdd = async (data: any) => {
   })
     .then((response) => {
       toast.success(t("success_msg.add_skill", response.name));
+      router.push(`/skills/${response.id}`);
     })
     .catch((error) => {
       toast.error(error.message || t("error.adding_skill"));

@@ -333,11 +333,17 @@ export const readSkill = async (params: {
 
 export const updateSkill = async (params: any, data: any) => {
   const { id } = params;
-  const { name, image, importance = 30, recommended = true } = data || {};
+  const {
+    name,
+    image,
+    importance = 30,
+    recommended = true,
+    description,
+  } = data || {};
 
   const [record] = await db
     .update(skill)
-    .set({ name, image, importance, recommended })
+    .set({ name, image, importance, recommended, description })
     .where(eq(skill.id, Number(id)))
     .returning();
 
