@@ -3,21 +3,29 @@
     :headers="headers"
     :items="skills"
     item-key="id"
-    :search="search"
+    :search="effectiveSearch"
     :loading="loading"
     :style="tableStyle"
     :items-length="count"
     @update:options="getSkills"
   >
     <template v-slot:top>
-      <v-text-field prepend-inner-icon="mdi-magnify" v-model="search" />
+      <v-text-field
+        v-if="showInternalSearch"
+        prepend-inner-icon="mdi-magnify"
+        v-model="effectiveSearch"
+        placeholder="Search skills..."
+        hide-details
+        class="mx-4 my-2"
+      />
     </template>
     <template v-slot:loading>
-      <v-skeleton-loader type="table-tbody"></v-skeleton-loader>
+      <v-skeleton-loader type="table-tbody" />
     </template>
+
     <template v-slot:item.name="{ item }">
       <v-hover>
-        <template v-slot:default="{ isHovering, props }">
+        <template #default="{ isHovering, props }">
           <span
             v-bind="props"
             @click="navigateTo(`/skills/${item.id}`)"
@@ -47,49 +55,62 @@
 <script setup lang="ts">
 import { useLocale } from "vuetify";
 
-const emit = defineEmits(["add", "relationshipDeleted", "loadPage"]);
-
 const props = defineProps<{
   add?: boolean;
   tableStyle?: any;
+  showSearch?: boolean;
 }>();
+
+const modelSearch = defineModel<string>("search", { default: null });
+const localSearch = ref("");
+const showInternalSearch = computed(
+  () => (props.showSearch ?? true) && modelSearch.value === null,
+);
+
+const effectiveSearch = computed({
+  get: () =>
+    modelSearch.value !== null ? modelSearch.value : localSearch.value,
+  set: (val) => {
+    if (modelSearch.value !== null) modelSearch.value = val;
+    else localSearch.value = val;
+  },
+});
+
+const emit = defineEmits(["add"]);
+
 const skills = ref<any[]>([]);
-const search = ref("");
 const loading = ref(false);
 const count = ref(0);
-
 const { t } = useLocale();
 const headers = computed(() => {
-  let defaultList = [
+  const base = [
     { title: "", value: "see" },
     { title: t("skill_table.logo"), value: "image" },
     { title: t("skill_table.name"), value: "name" },
   ];
-
-  if (props.add) {
-    defaultList.push({ title: t("skill_table.add"), value: "add" });
-  }
-
-  return defaultList;
+  if (props.add) base.push({ title: t("skill_table.add"), value: "add" });
+  return base;
 });
-const handleAddClicked = async (item: any) => {
-  emit("add", item);
-};
+
+const handleAddClicked = (item: any) => emit("add", item);
 
 onMounted(() => {
   getSkills({ page: 1, itemsPerPage: 10 });
 });
 
 const getSkills = async (event: any) => {
+  loading.value = true;
+
+  const q = encodeURIComponent(effectiveSearch.value || "");
+
   $fetch(
-    `/api/skills?page=${event.page}&take=${event.itemsPerPage}&skills=${search.value}`,
+    `/api/skills?page=${event.page}&take=${event.itemsPerPage}&skills=${q}`,
   )
-    .then((response: any) => {
-      skills.value = response.items;
-      count.value = response.count;
+    .then((res: any) => {
+      skills.value = res.items;
+      count.value = res.count;
     })
-    .catch((error) => {
-      console.log(error);
-    });
+    .catch(console.error)
+    .finally(() => (loading.value = false));
 };
 </script>

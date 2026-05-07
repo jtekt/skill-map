@@ -27,6 +27,7 @@ export default defineNuxtPlugin((app) => {
     defaults: {
       VSwitch: { color: "primary" },
       VTextField: { variant: "underlined" },
+      VTextarea: { variant: "underlined" },
       VSelect: { variant: "outlined" },
     },
     theme: {

@@ -14,12 +14,11 @@
       </v-tooltip>
     </template>
     <v-card>
-      <v-toolbar prominent>
-        <v-toolbar-title>{{ $t("add_relationship") }}</v-toolbar-title>
-
-        <v-spacer></v-spacer>
-        <v-btn :text="$t('$vuetify.close')" @click="show = false" />
-      </v-toolbar>
+      <v-card-title class="d-flex align-center pe-2">
+        {{ $t("add_relationship") }}
+        <v-spacer />
+        <v-btn icon="mdi-close" variant="text" @click="show = false" />
+      </v-card-title>
       <v-card-text>
         <SkillTable :add="true" @add="addRelationship" />
       </v-card-text>

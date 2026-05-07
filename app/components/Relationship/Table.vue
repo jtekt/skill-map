@@ -71,7 +71,7 @@
 <script setup lang="ts">
 import { useToast, useConfirm } from "@jtekt/vue-feedback-kit";
 const toast = useToast();
-const { confirm } = useConfirm();
+const confirm = useConfirm();
 import { useLocale } from "vuetify";
 const props = defineProps<{
   childId?: Number;
@@ -118,8 +118,7 @@ const loadNextPage = async ({ page, itemsPerPage }) => {
 };
 
 const deleteRelationship = async (item: any) => {
-  const ok = await confirm({
-    text: t("confirmation.remove_relationship"),
+  const ok = await confirm(t("confirmation.remove_relationship"), {
     color: "error",
   });
 

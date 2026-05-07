@@ -1,46 +1,18 @@
 <template>
   <v-container fluid>
     <template v-if="skill">
+      <SkillInfoCard
+        v-model:skill="skill"
+        class="pa-4 mb-4"
+        @delete-skill="doDelete"
+        @update:skill="doUpdate"
+      />
+
       <v-card class="pa-2 mb-4">
         <!-- Header -->
         <v-card-title class="d-flex align-center">
-          {{ $t("skill_info.title") }}
-
-          <v-spacer></v-spacer>
-
-          <v-tooltip
-            :text="$t('skill_info.update_skill')"
-            location="bottom"
-            v-if="skill"
-          >
-            <template v-slot:activator="{ props }">
-              <SkillForm
-                :initial-data="{ ...skill }"
-                v-bind="props"
-                :dialog-data="{
-                  icon: 'mdi-lead-pencil',
-                  color: 'orange-lighten-2',
-                  title: $t('skill_info.update_skill'),
-                }"
-                @save-data="doUpdate($event)"
-              />
-            </template>
-          </v-tooltip>
-
-          <v-tooltip :text="$t('skill_info.delete_skill')" location="bottom">
-            <template v-slot:activator="{ props }">
-              <v-btn
-                icon="mdi-trash-can"
-                color="error"
-                variant="text"
-                v-bind="props"
-                @click="doDelete"
-              />
-            </template>
-          </v-tooltip>
+          {{ $t("skill_info.relationship") }}
         </v-card-title>
-
-        <v-divider />
 
         <!-- Content -->
         <v-card-text>
@@ -70,47 +42,6 @@
                 table-style="max-height: 500px;"
               />
             </v-col>
-
-            <!-- Center Card -->
-            <v-col cols="12" md="4">
-              <v-card class="mx-auto" variant="text">
-                <v-card-actions v-if="user_id">
-                  <v-spacer></v-spacer>
-                  <v-tooltip
-                    :text="
-                      skill.skill_added
-                        ? $t('skill_info.remove_from_skill')
-                        : $t('skill_info.add_to_skill')
-                    "
-                    location="top"
-                  >
-                    <template v-slot:activator="{ props }">
-                      <v-btn
-                        :loading="addingSkill"
-                        v-bind="props"
-                        :color="skill.skill_added ? 'error' : 'success'"
-                        :icon="
-                          skill.skill_added
-                            ? 'mdi-notebook-minus'
-                            : 'mdi-notebook-plus'
-                        "
-                        @click="addToUserSkills"
-                      />
-                    </template>
-                  </v-tooltip>
-                </v-card-actions>
-
-                <v-img
-                  height="200px"
-                  class="pa-6"
-                  :src="skill.image || '/icons/school.png'"
-                />
-
-                <v-card-title>{{ skill.name }}</v-card-title>
-              </v-card>
-            </v-col>
-
-            <!-- Children -->
             <v-col>
               <RelationshipTable
                 :title="$t('skill_info.children')"
@@ -131,15 +62,59 @@
       </v-card>
 
       <!-- Proficiency -->
-      <template v-if="skill.skill_added">
-        <ProficiencyCard
-          class="mb-4"
-          :total-lvl-count="skill.skill_added._count.proficiency_levels"
-          :proficiency-levels="skill.skill_added.proficiency_levels"
-          :user-skill-id="skill.skill_added.id"
-          :allow-changes="true"
-        />
-      </template>
+      <v-card class="mb-4">
+        <v-card-title class="d-flex align-center">
+          {{ $t("skill_info.user_profeciency_title") }}
+
+          <v-spacer></v-spacer>
+
+          <v-tooltip
+            :text="
+              skill.skill_added
+                ? $t('skill_info.remove_from_skill')
+                : $t('skill_info.add_to_skill')
+            "
+            location="top"
+          >
+            <template v-slot:activator="{ props }">
+              <v-btn
+                :loading="addingSkill"
+                v-bind="props"
+                :color="skill.skill_added ? 'error' : 'success'"
+                :icon="
+                  skill.skill_added ? 'mdi-notebook-minus' : 'mdi-notebook-plus'
+                "
+                @click="addToUserSkills"
+                variant="plain"
+              />
+            </template>
+          </v-tooltip>
+        </v-card-title>
+
+        <v-divider />
+
+        <!-- CONTENT AREA -->
+        <v-card-text>
+          <!-- WHEN NOT ADDED -->
+          <template v-if="!skill.skill_added">
+            <div class="text-body-1 text-center py-6">
+              {{ $t("skill_info.not_added_yet") }}
+            </div>
+          </template>
+
+          <!-- WHEN ADDED -->
+          <template v-else>
+            <ProficiencyCard
+              class="mb-4"
+              :elevation="0"
+              :total-lvl-count="skill.skill_added._count.proficiency_levels"
+              :proficiency-levels="skill.skill_added.proficiency_levels"
+              :user-skill-id="skill.skill_added.id"
+              :allow-changes="true"
+            />
+          </template>
+        </v-card-text>
+      </v-card>
       <!-- Proficiency -->
       <template v-if="skill.user_skill && !loadingUserLevel">
         <UserProficiencyTable
@@ -156,7 +131,7 @@ import { useLocale } from "vuetify";
 
 import { useToast, useConfirm } from "@jtekt/vue-feedback-kit";
 const toast = useToast();
-const { confirm } = useConfirm();
+const confirm = useConfirm();
 const { fetchUsers } = useUserLookup();
 const { user_id } = useAuthIdentifier();
 const { t } = useLocale();
@@ -209,8 +184,7 @@ const getUsersProficiencyLvl = async () => {
 };
 
 const doUpdate = async (updatedData: any) => {
-  const ok = await confirm({
-    text: t("confirmation.update_skill"),
+  const ok = await confirm(t("confirmation.update_skill"), {
     color: "error",
   });
 
@@ -235,8 +209,7 @@ const doUpdate = async (updatedData: any) => {
 };
 
 const doDelete = async () => {
-  const ok = await confirm({
-    text: t("confirmation.delete_skill"),
+  const ok = await confirm(t("confirmation.delete_skill"), {
     color: "error",
   });
 
@@ -251,6 +224,13 @@ const doDelete = async () => {
 };
 
 const addToUserSkills = async () => {
+  if (
+    skill.value.skill_added &&
+    !(await confirm(t("confirmation.remove_from_user_skill"), {
+      color: "error",
+    }))
+  )
+    return;
   let url = `/api/userSkills`;
   let options: any = {
     method: "POST",
