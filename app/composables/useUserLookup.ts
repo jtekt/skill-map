@@ -1,6 +1,7 @@
 export function useUserLookup() {
   const config = useRuntimeConfig();
   const { session } = useUserSession();
+  const { isAnonymousId } = useAuthIdentifier();
 
   const lookupUrl = config.public.userLookup.url as string | undefined;
   const identifierField = config.public.userLookup.identifierField as
@@ -72,6 +73,13 @@ export function useUserLookup() {
       const rawUsers = extractUsers(response, identifierField!);
 
       return ids.map((id) => {
+        // Skip lookup: anonymous IDs get fallback display
+        if (isAnonymousId(id)) {
+          return {
+            user_id: id,
+            display_name: id, // show anon_xxx as display name
+          };
+        }
         const match = rawUsers.find((u) => String(u[identifierField!]) === id);
         const display =
           match?.[displayNameField as string] ??

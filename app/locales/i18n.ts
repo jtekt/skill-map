@@ -21,6 +21,8 @@ const messages = {
 
 export default createI18n({
   legacy: false,
+  warnHtmlMessage: false,
+  escapeParameterHtml: false,
   locale: savedLocale ?? "en",
   fallbackLocale: "en",
   messages,

@@ -22,7 +22,7 @@ export default {
   display_as_graph: "グラフとして表示",
   search: "検索",
   skill_table: {
-    logo: "ロゴ",
+    logo: "ロゴ画像URL",
     add: "追加",
     name: "名",
     remove: "取り除く",
@@ -43,10 +43,15 @@ export default {
   my_skills: "私のスキル",
   add_skill: "スキルを追加",
   empty_state: {
-    title: "利用可能なスキルがありません",
-    content: "新しいスキルを追加するには、下のボタンをクリックしてください",
-    content_user:
-      "既存のスキルをリストに追加する方法については、以下の手順に従ってください",
+    title: "スキルがありません",
+    content:
+      "まだスキルが追加されていません。スキルマップを作成するためにスキルを追加してください。",
+    content_user: "このユーザーはまだスキルを追加していません。",
+    step1: "<b>「すべてのスキル」</b>ページを開く",
+    step2: "追加したい<b>スキル</b>を選択する",
+    step3:
+      "少しスクロールして <b>「ユーザーのスキル状況」</b>右上のボタンを押す",
+    cta: "すべてのスキルを見る",
   },
   confirmation: {
     update_skill: "変更を保存してもよろしいですか？",

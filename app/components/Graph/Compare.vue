@@ -74,7 +74,7 @@ onMounted(() => {
   if (loggedInUserId.value && user_id && loggedInUserId.value !== user_id) {
     items.value.push({
       name: t("graph.your_skills"),
-      id: loggedInUserId.value || "",
+      id: String(loggedInUserId.value),
     });
   }
   const { compareTo: ct } = route.query;
