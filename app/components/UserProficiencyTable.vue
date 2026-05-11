@@ -73,15 +73,18 @@ const loading = ref(false);
 const items = ref<any[]>(props.propItems);
 const count = ref(props.propCount ?? 0);
 
-const headers = computed(() => [
-  { title: t("user"), value: "display_name", align: "end", width: "30%" },
-  {
-    title: t("proficiency_level"),
-    value: "proficiency_level",
-    align: "center",
-    width: "70%",
-  },
-]);
+const headers = computed(
+  () =>
+    [
+      { title: t("user"), value: "display_name", align: "end", width: "30%" },
+      {
+        title: t("proficiency_level"),
+        value: "proficiency_level",
+        align: "center",
+        width: "70%",
+      },
+    ] as const,
+);
 
 const levelColor = (level: number) => {
   if (level < 25) return "error";
@@ -115,15 +118,14 @@ const enrichUserDisplayNames = async () => {
   if (ids.length === 0) return;
 
   const normalized = await fetchUsers(ids);
+  const userMap = Object.fromEntries(
+    normalized.map((u) => [u.user_id, u.display_name]),
+  );
 
-  items.value = rows.map((row: any) => {
-    const match = normalized.find((u) => u.user_id === row.user_id);
-
-    return {
-      ...row,
-      display_name: match?.display_name ?? row.user_id,
-    };
-  });
+  items.value = rows.map((row) => ({
+    ...row,
+    display_name: userMap[row.user_id] || row.user_id,
+  }));
 
   loading.value = false;
 };

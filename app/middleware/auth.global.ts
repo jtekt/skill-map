@@ -1,4 +1,8 @@
 export default defineNuxtRouteMiddleware((to) => {
+  if (isAuthDisabled()) {
+    return;
+  }
+
   const { loggedIn } = useUserSession();
 
   // allow auth endpoints

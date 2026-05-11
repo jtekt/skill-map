@@ -163,14 +163,14 @@ const getUsersProficiencyLvl = async () => {
 
   try {
     const normalized = await fetchUsers(ids);
-    skill.value.user_skill = rows.map((entry: any) => {
-      const match = normalized.find((u) => u.user_id === entry.user_id);
 
-      return {
-        ...entry,
-        display_name: match?.display_name ?? entry.user_id,
-      };
-    });
+    const userMap = Object.fromEntries(
+      normalized.map((u) => [u.user_id, u.display_name]),
+    );
+    skill.value.user_skill = rows.map((entry: any) => ({
+      ...entry,
+      display_name: userMap[entry.user_id] || entry.user_id,
+    }));
   } catch (err) {
     console.error("User lookup failed:", err);
 

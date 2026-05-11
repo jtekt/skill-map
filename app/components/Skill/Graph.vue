@@ -31,21 +31,23 @@
           ></v-fab>
         </template>
 
-        <GraphCompare key="compare">
+        <div key="compare" style="display: inline-block">
+          <GraphCompare />
           <v-tooltip
             activator="parent"
             :text="$t('graph.compare_skills')"
             location="right"
           />
-        </GraphCompare>
+        </div>
 
-        <GraphFilter key="filter" :hidden="hideFilter">
+        <div key="filter" style="display: inline-block">
+          <GraphFilter :hidden="hideFilter" />
           <v-tooltip
             activator="parent"
             :text="$t('graph.add_filter')"
             location="right"
           />
-        </GraphFilter>
+        </div>
 
         <div key="table" style="display: inline-block">
           <v-btn :icon="routeConfig.icon" :to="routeConfig.path" />
@@ -56,20 +58,21 @@
           />
         </div>
 
-        <SkillForm
-          key="add"
-          :dialog-data="{
-            icon: 'mdi-notebook-plus-outline',
-            title: $t('add_new_skill'),
-          }"
-          @save-data="doAdd($event)"
-        >
+        <div key="add-skill" style="display: inline-block">
+          <SkillForm
+            key="add"
+            :dialog-data="{
+              icon: 'mdi-notebook-plus-outline',
+              title: $t('add_new_skill'),
+            }"
+            @save-data="doAdd($event)"
+          />
           <v-tooltip
             activator="parent"
             :text="$t('add_new_skill')"
             location="right"
           />
-        </SkillForm>
+        </div>
         <!-- <v-btn key="4" icon="$error"></v-btn> -->
       </v-speed-dial>
     </div>

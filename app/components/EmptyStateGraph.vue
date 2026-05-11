@@ -1,14 +1,13 @@
 <template>
   <v-empty-state
-    image="https://cdni.iconscout.com/illustration/premium/thumb/find-folder-4816549-4004140.png"
-    size="200"
+    image="/empty/planet.png"
     class="w-100"
     align="center"
     justify="center"
-    :headline="$t('empty_state.title')"
+    :title="$t('empty_state.title')"
   >
-    <template v-slot:title v-if="!loading">
-      <div class="text-body-1">
+    <template v-slot:text v-if="!loading">
+      <div>
         {{
           $t(
             route.params.user_id
@@ -17,24 +16,38 @@
           )
         }}
       </div>
-      <v-container v-if="route.params.user_id">
-        <v-row align="center">
-          <v-col cols="4" sm="3">
-            <v-img src="/empty/step-1.png" />
-          </v-col>
-          <v-icon icon="mdi-arrow-right-bold-outline" />
-
-          <v-col cols="4" sm="3">
-            <v-img src="/empty/step-2.png" />
-          </v-col>
-          <v-icon icon="mdi-arrow-right-bold-outline" />
-
-          <v-col cols="4" sm="3">
-            <v-img src="/empty/step-3.png" />
-          </v-col>
-        </v-row>
-      </v-container>
     </template>
+    <v-container v-if="route.params.user_id" class="steps-container">
+      <v-row align="center" justify="center">
+        <v-col cols="12" sm="4">
+          <StepCard
+            :number="1"
+            img="/empty/step-1.png"
+            :label="$t('empty_state.step1')"
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <StepCard
+            :number="2"
+            img="/empty/step-2.png"
+            :label="$t('empty_state.step2')"
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <StepCard
+            :number="3"
+            img="/empty/step-3.png"
+            :label="$t('empty_state.step3')"
+          />
+        </v-col>
+      </v-row>
+
+      <div class="mt-6">
+        <v-btn color="primary" variant="flat" @click="goToAllSkills">
+          {{ $t("empty_state.cta") }}
+        </v-btn>
+      </div>
+    </v-container>
 
     <template v-slot:actions v-if="!loading">
       <div v-if="!route.params.user_id">
@@ -45,6 +58,8 @@
               :dialog-data="{
                 icon: 'mdi-notebook-plus-outline',
                 title: $t('add_new_skill'),
+                color: 'primary',
+                size: 'x-large',
               }"
               @save-data="doAdd($event)"
             />
@@ -75,4 +90,14 @@ const doAdd = async (data: any) => {
       toast.error(error.message);
     });
 };
+
+const goToAllSkills = () => {
+  navigateTo("/");
+};
 </script>
+<style lang="css">
+.steps-container {
+  max-width: 900px;
+  padding-top: 16px;
+}
+</style>

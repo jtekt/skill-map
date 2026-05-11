@@ -1,4 +1,8 @@
 export default defineEventHandler(async (event) => {
+  if (isAuthDisabled()) {
+    return;
+  }
+
   if (!event.path.startsWith("/api/") || event.path.startsWith("/api/auth"))
     return;
 

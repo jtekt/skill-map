@@ -92,6 +92,13 @@ Create a `.env` file:
 ```env
 # Required
 DATABASE_URL=
+
+# Optional (Disable Authentication)
+# When set to true, authentication is completely disabled
+# and OIDC configuration is not required.
+NUXT_PUBLIC_AUTH_DISABLED=
+
+# Required only if authentication is enabled
 NUXT_OAUTH_OIDC_OPENID_CONFIG=
 NUXT_OAUTH_OIDC_CLIENT_ID=
 NUXT_SESSION_PASSWORD=
@@ -111,7 +118,22 @@ NUXT_PUBLIC_AUTH_OIDC_IDENTIFIER_FIELD=
 
 This app uses OIDC via `nuxt-auth-utils`.
 
-Expected user payload:
+Authentication can also be completely disabled by setting:
+
+```env
+NUXT_PUBLIC_AUTH_DISABLED=true
+```
+
+When authentication is disabled, the following variables are no longer required:
+
+```env
+NUXT_PUBLIC_AUTH_OIDC_IDENTIFIER_FIELD=
+NUXT_OAUTH_OIDC_OPENID_CONFIG=
+NUXT_OAUTH_OIDC_CLIENT_ID=
+NUXT_SESSION_PASSWORD=
+```
+
+If authentication is enabled, this is the expected payload:
 
 ```ts
 interface User {

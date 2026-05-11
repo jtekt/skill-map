@@ -43,10 +43,15 @@ export default {
   my_skills: "My Skills",
   add_skill: "Add skill",
   empty_state: {
-    title: "No Skill Available",
-    content: "Click the button below to add new skill",
-    content_user:
-      "Follow the instruction below on how to add an existing skill to your list",
+    title: "No Skills Available",
+    content:
+      "You have not added any skills yet. Add skills to build your skill map.",
+    content_user: "This user has not added any skills yet.",
+    step1: "Go to the <b>All Skills</b> page",
+    step2: "Select a <b>skill</b> you want to add",
+    step3:
+      "Scroll down and click the button in the <b>top‑right </b> of the <b>User Skill Status </b> section",
+    cta: "Browse All Skills",
   },
   confirmation: {
     update_skill: "Are you sure you want you want to save your changes?",

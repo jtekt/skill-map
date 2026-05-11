@@ -10,12 +10,16 @@
           {{ $t("all_skills") }}
         </v-btn>
 
-        <v-btn v-if="user" :to="`/users/${user.preferred_username}`">
+        <v-btn v-if="user_id" :to="`/users/${user_id}`">
           {{ $t("my_skills") }}
         </v-btn>
 
-        <LocaleSelector />
-        <v-btn icon="mdi-logout" @click="handleLogout()" />
+        <LocaleSelector class="ma-2" />
+        <v-btn
+          v-if="!isAuthDisabled()"
+          icon="mdi-logout"
+          @click="handleLogout()"
+        />
       </template>
     </AppHeader>
 
@@ -32,9 +36,10 @@
 </template>
 
 <script setup lang="ts">
-const { user, clear } = useUserSession();
+const { clear } = useUserSession();
 const config = useRuntimeConfig();
 const router = useRouter();
+const { user_id } = useAuthIdentifier();
 
 const title = "Skill Map";
 

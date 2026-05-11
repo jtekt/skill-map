@@ -61,6 +61,7 @@ export default defineNuxtConfig({
         identifierField: "",
         displayNameField: "",
       },
+      authDisabled: "",
       authOidcIdentifierField: "",
       apiBase: "/api",
       developer: "",

@@ -112,7 +112,7 @@
                 <ProficiencyDialog
                   :id="item.user_skill[0].id"
                   @updated-proficiency="updatedProficiency(index, $event)"
-                  :allow-changes="allowChanges ?? false"
+                  :allow-changes="allowChanges"
                 />
               </v-col>
             </v-row>
@@ -149,8 +149,8 @@ const query = computed(() => ({
   skills: search.value,
 }));
 
-const allowChanges = computed(
-  () => user_id.value && user_id.value === route.params.user_id,
+const allowChanges = computed(() =>
+  Boolean(user_id.value && user_id.value === route.params.user_id),
 );
 
 const skills = computed(() => skillsData.value?.items ?? []);
