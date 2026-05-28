@@ -1,0 +1,142 @@
+{
+  "skills": "Skills",
+  "add_relationship": "Add Relationship",
+  "skill_info": {
+    "title": "Skill Information",
+    "delete_skill": "Delete Skill",
+    "update_skill": "Update Skill",
+    "children": "Children",
+    "parents": "Parents",
+    "add_new_parent": "Add new parent skill",
+    "add_new_child": "Add new child skill",
+    "add_to_skill": "Add to my skill map",
+    "remove_from_skill": "Remove from my skill map",
+    "relationship": "Skill Relationship",
+    "not_added_yet": "This skill has not been added to your skill list yet.",
+    "add_skill": "Add Skill",
+    "remove_skill": "Remove Skill",
+    "user_profeciency_title": "User Skill Status"
+  },
+  "proficiency_level": "Proficiency Level",
+  "add_new_skill": "Add new skill",
+  "display_as_graph": "Display as graph",
+  "search": "Search",
+  "skill_table": {
+    "logo": "Logo",
+    "add": "Add",
+    "name": "Name",
+    "remove": "Remove"
+  },
+  "skill": {
+    "form": {
+      "recommended": "Recommended",
+      "importance": "Importance",
+      "description": "Description",
+      "add_btn": "Add"
+    }
+  },
+  "user": "User",
+  "user_name_skills": "{0}'s Skills",
+  "other_user_skills_level": "Other's Proficiency Level",
+  "table": "Table",
+  "all_skills": "All Skills",
+  "my_skills": "My Skills",
+  "add_skill": "Add skill",
+  "empty_state": {
+    "title": "No Skills Available",
+    "content": "You have not added any skills yet. Add skills to build your skill map.",
+    "content_user": "This user has not added any skills yet.",
+    "step1": "Go to the <b>All Skills</b> page",
+    "step2": "Select a <b>skill</b> you want to add",
+    "step3": "Scroll down and click the button in the <b>top‑right </b> of the <b>User Skill Status </b> section",
+    "cta": "Browse All Skills"
+  },
+  "confirmation": {
+    "update_skill": "Are you sure you want you want to save your changes?",
+    "delete_skill": "Are you sure you want to delete?",
+    "remove_from_user_skill": "Are you sure you want to remove this skill from your list?",
+    "remove_proficiency_level": "Are you sure you want to remove this level from your list?",
+    "remove_relationship": "Are you sure you want to remove this item?"
+  },
+  "success_msg": {
+    "add_skill": "Skill added successfully",
+    "update_skill": "Update Successful",
+    "added_my_list": "Skill added to my skill list",
+    "removed_from_my_list": "Skill removed from my skill list",
+    "proficiency_level_updated": "Skill level updated",
+    "add_skill_relationship": "{0} added successfully!"
+  },
+  "error": {
+    "adding_skill": "An error occurred while adding the skill.",
+    "updating_skill": "An error occurred while updating the skill.",
+    "deleting_skill": "An error occurred while deleting the skill.",
+    "updating_user_skills": "An error occurred while updating your skills.",
+    "removing_skill": "An error occurred while removing the skill.",
+    "saving_skill": "Error saving skill",
+    "saving_data": "An error occurred while saving the data.",
+    "updating_data": "An error occurred while updating the data.",
+    "deleting_relationship": "An error occurred while deleting the relationship.",
+    "adding_relationship": "An error occurred while adding the relationship.",
+    "missing_relationship_id": "Missing childId or parentId",
+    "conflicting_relationship_id": "Cannot have both childId and parentId"
+  },
+  "common": {
+    "graph": "Graph",
+    "actions": "Actions",
+    "close": "Close",
+    "reset": "Reset",
+    "select_item": "Select Item",
+    "please_wait": "Please wait...",
+    "open_navigation": "Open navigation",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "search_skills": "Search skills..."
+  },
+  "auth": {
+    "welcome": "Welcome Back",
+    "login_prompt": "Please log in to access your dashboard.",
+    "continue_with_keycloak": "Continue with Keycloak",
+    "agree_terms": "By continuing, you agree to our",
+    "terms_of_service": "Terms of Service"
+  },
+  "proficiency": {
+    "table_title": "Proficiency Level Table",
+    "add_new_level": "Add new level",
+    "update_level": "Update Level",
+    "added_at": "Added at",
+    "no_levels": "No levels added yet"
+  },
+  "graph": {
+    "compare_skills": "Compare Skills",
+    "add_filter": "Add filter",
+    "display_as_table": "Display as table",
+    "filter": "Filter",
+    "filter_all": "All",
+    "show_recommended": "Show only recommended",
+    "compare_title": "Compare Your Skills To:",
+    "compare": "Compare",
+    "compare_all": "ALL",
+    "your_skills": "Your skills",
+    "proficiency_chart_label": "Level",
+    "legend": {
+      "title": "Comparison Legend",
+      "has_skill": "{0} have this skill",
+      "missing_skill": "{0} don't have this skill",
+      "only_user_has": "Only {0} have this skill",
+      "only_other_has": "Only {1} have this skill",
+      "both_have": "Both have this skill",
+      "neither_has": "Neither has this skill",
+      "owner_skill": "{0}'s Skill"
+    }
+  },
+  "user_proficiency": {
+    "view_skill_list": "View Skill List",
+    "view_skill_graph": "View Skill Graph"
+  },
+  "footer": {
+    "maintained_by": "Maintained by"
+  },
+  "validation": {
+    "required": "Field Required"
+  }
+}

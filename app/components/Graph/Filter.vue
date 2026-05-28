@@ -54,20 +54,24 @@
 </template>
 
 <script setup lang="ts">
+import { useLocale } from "vuetify";
+
 const route = useRoute();
 const router = useRouter();
+const { t } = useLocale();
 
 const menu = ref(false);
 
 const { data } = useFetch("/api/skills/categories", {
-  transform: (res: any) => {
-    return [{ id: -1, name: "All" }, ...res.items];
-  },
+  transform: (res: any) => res.items,
   immediate: true,
   deep: true,
 });
 
-const items = computed(() => data.value ?? []);
+const items = computed(() => [
+  { id: -1, name: t("graph.filter_all") },
+  ...(data.value ?? []),
+]);
 const selected = ref(-1);
 const recommended = ref(false);
 

@@ -45,7 +45,7 @@
 
           <!-- ACTIONS -->
           <v-card-actions class="px-4 justify-end">
-            <v-btn color="primary" text="Add" type="submit" :disabled="!form" />
+            <v-btn color="primary" :text="$t('skill.form.add_btn')" type="submit" :disabled="!form" />
           </v-card-actions>
         </v-card>
       </v-form>

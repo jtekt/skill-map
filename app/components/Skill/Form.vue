@@ -105,7 +105,7 @@
             <v-btn
               color="primary"
               size="lg"
-              text="Add"
+              :text="$t('skill.form.add_btn')"
               type="submit"
               :disabled="!form || !formData.name"
             />

@@ -1,0 +1,142 @@
+{
+  "add_relationship": "リレーションシップを追加",
+  "skills": "スキル",
+  "skill_info": {
+    "title": "スキル情報",
+    "delete_skill": "スキル削除",
+    "update_skill": "スキルアップデート",
+    "children": "スキル子供たち",
+    "parents": "スキル両親",
+    "add_new_parent": "新しい親スキルを追加",
+    "add_new_child": "新しい子スキルを追加",
+    "add_to_skill": "スキルマップに追加",
+    "remove_from_skill": "スキルマップから削除",
+    "relationship": "スキルの関連性",
+    "not_added_yet": "このスキルはまだあなたのスキルリストに追加されていません。",
+    "add_skill": "スキルを追加",
+    "remove_skill": "スキルを削除",
+    "user_profeciency_title": "ユーザーのスキル状況"
+  },
+  "add_new_skill": "新しいスキルを追加",
+  "display_as_graph": "グラフとして表示",
+  "search": "検索",
+  "skill_table": {
+    "logo": "ロゴ画像URL",
+    "add": "追加",
+    "name": "名",
+    "remove": "取り除く"
+  },
+  "skill": {
+    "form": {
+      "recommended": "おすすめ",
+      "importance": "重要度",
+      "description": "説明",
+      "add_btn": "追加"
+    }
+  },
+  "user": "ユーザー",
+  "user_name_skills": "{0}のスキル",
+  "other_user_skills_level": "その他熟練度のレベル",
+  "proficiency_level": "熟練度のレベル",
+  "table": "テーブル",
+  "all_skills": "すべてのスキル",
+  "my_skills": "私のスキル",
+  "add_skill": "スキルを追加",
+  "empty_state": {
+    "title": "スキルがありません",
+    "content": "まだスキルが追加されていません。スキルマップを作成するためにスキルを追加してください。",
+    "content_user": "このユーザーはまだスキルを追加していません。",
+    "step1": "<b>「すべてのスキル」</b>ページを開く",
+    "step2": "追加したい<b>スキル</b>を選択する",
+    "step3": "少しスクロールして <b>「ユーザーのスキル状況」</b>右上のボタンを押す",
+    "cta": "すべてのスキルを見る"
+  },
+  "confirmation": {
+    "update_skill": "変更を保存してもよろしいですか？",
+    "delete_skill": "削除してもよろしいですか？",
+    "remove_from_user_skill": "このスキルをリストから削除してもよろしいですか？",
+    "remove_proficiency_level": "このレベルをリストから削除してもよろしいですか？",
+    "remove_relationship": "このアイテムを削除してもよろしいですか？"
+  },
+  "success_msg": {
+    "add_skill": "スキルが正常に追加されました",
+    "update_skill": "更新が成功しました",
+    "removed_from_my_list": "スキルがリストから削除されました",
+    "added_my_list": "スキルがリストに追加されました",
+    "proficiency_level_updated": "スキルレベルが更新されました",
+    "add_skill_relationship": "{0}が正常に追加されました！"
+  },
+  "error": {
+    "adding_skill": "スキルの追加中にエラーが発生しました。",
+    "updating_skill": "スキルの更新中にエラーが発生しました。",
+    "deleting_skill": "スキルの削除中にエラーが発生しました。",
+    "updating_user_skills": "スキルの更新中にエラーが発生しました。",
+    "removing_skill": "スキルの削除中にエラーが発生しました。",
+    "saving_skill": "スキルの保存中にエラーが発生しました",
+    "saving_data": "データの保存中にエラーが発生しました。",
+    "updating_data": "データの更新中にエラーが発生しました。",
+    "deleting_relationship": "リレーションシップの削除中にエラーが発生しました。",
+    "adding_relationship": "リレーションシップの追加中にエラーが発生しました。",
+    "missing_relationship_id": "childIdまたはparentIdがありません",
+    "conflicting_relationship_id": "childIdとparentIdの両方を持つことはできません"
+  },
+  "common": {
+    "graph": "グラフ",
+    "actions": "アクション",
+    "close": "閉じる",
+    "reset": "リセット",
+    "select_item": "アイテムを選択",
+    "please_wait": "お待ちください...",
+    "open_navigation": "ナビゲーションを開く",
+    "confirm": "確認",
+    "cancel": "キャンセル",
+    "search_skills": "スキルを検索..."
+  },
+  "auth": {
+    "welcome": "おかえりなさい",
+    "login_prompt": "ダッシュボードにアクセスするにはログインしてください。",
+    "continue_with_keycloak": "Keycloakで続ける",
+    "agree_terms": "続けることで、私たちの",
+    "terms_of_service": "利用規約"
+  },
+  "proficiency": {
+    "table_title": "熟練度レベルテーブル",
+    "add_new_level": "新しいレベルを追加",
+    "update_level": "レベルを更新",
+    "added_at": "追加日時",
+    "no_levels": "レベルがまだ追加されていません"
+  },
+  "graph": {
+    "compare_skills": "スキルを比較",
+    "add_filter": "フィルターを追加",
+    "display_as_table": "テーブルとして表示",
+    "filter": "フィルター",
+    "filter_all": "すべて",
+    "show_recommended": "おすすめのみ表示",
+    "compare_title": "スキルを比較する相手：",
+    "compare": "比較",
+    "compare_all": "すべて",
+    "your_skills": "あなたのスキル",
+    "proficiency_chart_label": "レベル",
+    "legend": {
+      "title": "比較凡例",
+      "has_skill": "{0}がこのスキルを持っています",
+      "missing_skill": "{0}がこのスキルを持っていません",
+      "only_user_has": "{0}だけがこのスキルを持っています",
+      "only_other_has": "{1}だけがこのスキルを持っています",
+      "both_have": "両方がこのスキルを持っています",
+      "neither_has": "どちらもこのスキルを持っていません",
+      "owner_skill": "{0}のスキル"
+    }
+  },
+  "user_proficiency": {
+    "view_skill_list": "スキルリストを見る",
+    "view_skill_graph": "スキルグラフを見る"
+  },
+  "footer": {
+    "maintained_by": "管理者："
+  },
+  "validation": {
+    "required": "必須項目です"
+  }
+}
