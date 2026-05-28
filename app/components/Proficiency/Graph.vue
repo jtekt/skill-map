@@ -15,7 +15,7 @@ import Chart from "chart.js/auto";
 
 const locales = { ja, enUS };
 
-const { current } = useLocale();
+const { current, t } = useLocale();
 
 onMounted(() => {
   Chart.register(CategoryScale);
@@ -35,7 +35,7 @@ const processJson = () => {
     ),
     datasets: [
       {
-        label: "Level",
+        label: t("graph.proficiency_chart_label"),
         data: sortedArr.map((data) => data.level),
         fill: false,
         borderColor: (context) => {

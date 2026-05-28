@@ -14,9 +14,8 @@
         v-if="showInternalSearch"
         prepend-inner-icon="mdi-magnify"
         v-model="effectiveSearch"
-        placeholder="Search skills..."
+        :placeholder="$t('common.search_skills')"
         hide-details
-        class="mx-4 my-2"
       />
     </template>
     <template v-slot:loading>

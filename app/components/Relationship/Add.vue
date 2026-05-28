@@ -20,7 +20,7 @@
         <v-btn icon="mdi-close" variant="text" @click="show = false" />
       </v-card-title>
       <v-card-text>
-        <SkillTable :add="true" @add="addRelationship" />
+        <SkillTable :add="true" @add="addRelationship" :show-search="true" />
       </v-card-text>
     </v-card>
   </v-dialog>
