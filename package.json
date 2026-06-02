@@ -1,7 +1,6 @@
 {
   "name": "skill_map_nuxt",
   "version": "1.5.1",
-  "private": true,
   "type": "module",
   "license": "MIT",
   "scripts": {
