@@ -23,12 +23,6 @@
         {{ $t('auth.continue_with_keycloak') }}
       </v-btn>
 
-      <v-divider class="my-8"></v-divider>
-
-      <div class="text-center text-caption text-medium-emphasis">
-        {{ $t('auth.agree_terms') }}
-        <NuxtLink to="#">{{ $t('auth.terms_of_service') }}</NuxtLink>.
-      </div>
     </v-card>
   </v-container>
 </template>
